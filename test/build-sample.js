@@ -60,7 +60,7 @@ var html = fs.readFileSync(path.join(root, 'gas-admin', 'index.html'), 'utf8')
 fs.writeFileSync(path.join(out, 'index.html'), html);
 
 var form = fs.readFileSync(path.join(root, 'docs', 'index.html'), 'utf8')
-  .replace('<title>サービス向上のためのアンケート｜ケイ・クリエイト</title>', '<title>サービス向上のためのアンケート（サンプル）</title>')
+  .replace('<title>お客様アンケート｜ケイ・クリエイト</title>', '<title>お客様アンケート（サンプル）</title>')
   .replace('<body>', '<body><div style="background:#fef3c7;color:#92400e;font-size:12.5px;padding:7px 16px;text-align:center;border-bottom:1px solid #fde68a">これはサンプルです。送信しても、どこにも届きません。</div>')
   .replace('<script src="config.js"></script>', '<script>window.API_URL = "sample";</script>')
   .replace("fetch(window.API_URL, { method: 'POST', body: JSON.stringify({ action: 'submit', data: data }) })\n      .then(function (r) { return r.json(); })", "new Promise(function (ok) { setTimeout(function () { ok({ ok: true }); }, 500); })");
