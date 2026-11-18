@@ -47,15 +47,21 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent-2
 .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px}
 .rc{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px;display:flex;flex-direction:column;gap:8px}
 .rc.del{opacity:.55}
-.rc h3{margin:0;font-size:15px;font-weight:700;display:flex;gap:8px;align-items:baseline}
+.rc h3{margin:0;font-size:15px;font-weight:700;display:flex;gap:8px;align-items:baseline;min-width:0}
+.rc h3 .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
 .rc h3 .at{margin-left:auto;font-size:12px;color:var(--faint);font-weight:500;font-family:var(--mono);white-space:nowrap}
 .sat{display:flex;gap:6px;flex-wrap:wrap}
 .pill{display:inline-flex;align-items:center;gap:6px;padding:2px 9px;border-radius:999px;font-size:12px;white-space:nowrap;background:var(--pb);color:var(--pc)}
 .pill::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--pc)}
 .p5{--pb:#dcfce7;--pc:#15803d}.p4{--pb:#ecfccb;--pc:#4d7c0f}.p3{--pb:#f1f5f9;--pc:#475569}.p2{--pb:#fef3c7;--pc:#b45309}.p1{--pb:#fee2e2;--pc:#b91c1c}
-.qa{font-size:13px;white-space:pre-wrap;word-break:break-word}
-.qa b{display:block;font-size:11px;color:var(--muted);font-weight:500;letter-spacing:.04em}
-.sales{display:flex;flex-wrap:wrap;gap:4px;font-size:12px;border-top:1px solid var(--line-2);padding-top:8px}
+.qa{font-size:13px;line-height:1.6}
+.qa b{display:block;font-size:11px;color:var(--muted);font-weight:500;letter-spacing:.04em;line-height:1.5}
+.qa .t{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;height:3.2em;word-break:break-word;white-space:normal}
+.qa.one .t{-webkit-line-clamp:1;height:1.6em}
+.qa .t.no{color:var(--faint)}
+.sales{display:flex;flex-wrap:nowrap;gap:4px;font-size:12px;border-top:1px solid var(--line-2);padding-top:8px;overflow:hidden;height:30px;white-space:nowrap}
+.sales .chip{flex:none}
+.rc .acts{margin-top:auto;min-height:30px}
 .chip{background:var(--accent-weak);color:var(--accent);border-radius:5px;padding:1px 7px}
 .chip.none{background:#fff7ed;color:#c2410c}
 .acts{display:flex;gap:6px;flex-wrap:wrap}
@@ -354,7 +360,7 @@ a{color:var(--accent)}
 var store = {}, SHEET_ID = "1w-4FIkRfEjiCEo6LwKKb8CoXMOvT7_c6ASFpVkrO3ks", QR = "1riYm2WOMEeZBq0Te6BsqBumQFvPji9oYuZa8c6_So0o";
 store[SHEET_ID] = new GasMock.Spreadsheet(SHEET_ID, "反響事例管理データ（サンプル）");
 var q = store[QR] = new GasMock.Spreadsheet(QR, "QR"), mem = q.insertSheet("members"); mem.appendRow(["email","name","prefix"]);
-var PEOPLE = [["sample@k-create.co.jp","見本 花子"],["tanaka@example.jp","田中 一郎"],["suzuki@example.jp","鈴木 美咲"],["sato@example.jp","佐藤 健太"]], ROWS = [["〇〇整骨院",5,"掲載後1か月で新規の予約が12件ありました。冊子を見たという方が多かったです。",4,"費用対効果満足度が得られた","次回も掲載したい",1,["クリニック","2026-10","一宮","1/4P AD",30000]],["カフェ こもれび",4,"来店が増えた。クーポン利用が8件。",3,"反響はあったが費用的には少し高く感じた","エリアを広げていきたい",2,["グルメ","2026-10","江南","1/8P FO",15000]],["ひまわり学習塾",3,"問い合わせが2件",2,"時期が合わなかった","春の募集時期にもう一度相談したい",1,["スクール","2026-09","一宮","1/6P FO",20000]],["ヘアサロン ルーム",5,"20代の新規客が5人増えた",5,"想像以上の反響だった","HPやAIについても相談したい",0,["ショップ","2026-11","岩倉","1/4P FO",25000]],["ほっと訪問介護",2,"反響はほとんどなかった",2,"費用的に高く感じた","",-1,null],["和菓子 つきみ",4,"贈答用の注文が増えた",4,"","年末号にも出したい",-1,null],["みどり歯科クリニック",5,"新規の患者さんが月10人ほど増えた。予約の電話で「くれよんを見た」と言われた。",4,"費用対効果に満足","次回は1/2ページで相談したい",3,["クリニック","2026-09","一宮","1/2P AD",80000]],["ベーカリー 小麦の丘",4,"クーポン持参が15件",4,"ちょうどよい","",2,["グルメ","2026-11","江南","1/6P FO",20000]],["さくら司法書士事務所",3,"相談が1件",3,"","相続特集があればまた出したい",3,["終活・士業","2026-10","清須","1/4P FO",25000]],["フィットネス ボルト",5,"体験申し込みが20件、そのうち8件入会",5,"費用以上の効果があった","毎月出したい",1,["トータルケア","2026-11","一宮","1/2P FO",60000]],["リフォーム工房 あおい",2,"問い合わせは0件だった",1,"高く感じた","内容を変えてもう一度考えたい",0,["暮らし","2026-09","津島","1/4P AD",35000]],["ペットサロン わんこ堂",4,"新規のトリミング予約が6件",4,"","エリアを広げていきたい",2,["ショップ","2026-10","西北","1/8P FO",12000]]];
+var PEOPLE = [["sample@k-create.co.jp","見本 花子"],["tanaka@example.jp","田中 一郎"],["suzuki@example.jp","鈴木 美咲"],["sato@example.jp","佐藤 健太"]], ROWS = [["〇〇整骨院",5,"掲載後1か月で新規の予約が12件ありました。冊子を見たという方が多かったです。",4,"費用対効果満足度が得られた","次回も掲載したい",1,["クリニック","2026-10","一宮","1/4P AD",30000]],["カフェ こもれび",4,"来店が増えた。クーポン利用が8件。",3,"反響はあったが費用的には少し高く感じた","エリアを広げていきたい",2,["グルメ","2026-10","江南","1/8P FO",15000]],["ひまわり学習塾",3,"問い合わせが2件",2,"時期が合わなかった","春の募集時期にもう一度相談したい",1,["スクール","2026-09","一宮","1/6P FO",20000]],["ヘアサロン ルーム",5,"20代の新規客が5人増えた",5,"想像以上の反響だった","HPやAIについても相談したい",0,["ショップ","2026-11","岩倉","1/4P FO",25000]],["ほっと訪問介護",2,"反響はほとんどなかった",2,"費用的に高く感じた","",-1,null],["和菓子 つきみ",4,"贈答用の注文が増えた",4,"","年末号にも出したい",-1,null],["みどり歯科クリニック",5,"新規の患者さんが月10人ほど増えた。予約の電話で「くれよんを見た」と言われた。",4,"費用対効果に満足","次回は1/2ページで相談したい",3,["クリニック","2026-09","一宮","1/2P AD",80000]],["ベーカリー 小麦の丘",4,"クーポン持参が15件",4,"ちょうどよい","",2,["グルメ","2026-11","江南","1/6P FO",20000]],["さくら司法書士事務所",3,"相談が1件",3,"","相続特集があればまた出したい",3,["終活・士業","2026-10","清須","1/4P FO",25000]],["フィットネス ボルト",5,"体験申し込みが20件、そのうち8件入会",5,"費用以上の効果があった","毎月出したい",1,["トータルケア","2026-11","一宮","1/2P FO",60000]],["リフォーム工房 あおい",2,"問い合わせは0件だった",1,"高く感じた","内容を変えてもう一度考えたい",0,["暮らし","2026-09","津島","1/4P AD",35000]],["ペットサロン わんこ堂",4,"新規のトリミング予約が6件",4,"","エリアを広げていきたい",2,["ショップ","2026-10","西北","1/8P FO",12000]],["外壁塗装 いろどり",2,"問い合わせは0件",2,"反響はあったが費用的には少し高く感じた","求人でも使いたい",1,["暮らし","2026-07","津島","1/8P FO",12000]],["整体 ほぐし庵",2,"反響はほとんどなかった",3,"もう少し安いと続けやすい","エリアを広げていきたい",0,["トータルケア","2026-11","西北","1/4P AD",30000]],["こころ皮ふ科",3,"反響はぼちぼち",2,"","エリアを広げていきたい",3,["クリニック","2026-08","一宮","1P",120000]],["工務店 木のいえ",5,"予約が月10件ほど増えた",5,"費用対効果満足度が得られた","HPやAIについても相談したい",3,["暮らし","2026-08","一宮","1/6P FO",18000]],["ヨガ教室 しずく",5,"問い合わせが15件あった",3,"","次回も掲載したい",1,["トータルケア","2026-10","岩倉","1/2P AD",70000]],["株式会社 ミライ製作所",3,"常連さんから声をかけられた",3,"もう少し安いと続けやすい","HPやAIについても相談したい",0,["企業","2026-10","一宮","1/4P AD",30000]],["スイミング アクア",5,"求人の応募が6件あった",5,"ちょうどよい価格","季節ごとに出したい",0,["スクール","2026-07","江南","1P",120000]],["こころ皮ふ科 本店",5,"電話の問い合わせが倍になった",4,"費用対効果満足度が得られた","求人でも使いたい",1,["クリニック","2026-06","西北","1/2P FO",55000]],["不動産 すまいる",4,"求人の応募が6件あった",3,"","次回も掲載したい",-1,["暮らし","2026-06","清須","1/2P FO",55000]],["訪問看護 えがお",3,"問い合わせが2〜3件",3,"","次回も掲載したい",2,["介護・福祉","2026-10","津島","1P",120000]],["こころ皮ふ科 駅前店",3,"問い合わせが2〜3件",3,"","HPやAIについても相談したい",3,["クリニック","2026-06","一宮","1/8P FO",12000]],["居酒屋 ほろよい",3,"少し来店が増えた気がする",2,"","",1,["グルメ","2026-10","江南","1/8P FO",12000]],["株式会社 ミライ製作所 本店",4,"新規のお客さまが8件増えた",4,"","次回も掲載したい",0,["企業","2026-07","一宮","1/2P FO",55000]],["ヨガ教室 しずく 本店",4,"「冊子を見た」と来店する方が多かった",5,"","",2,["トータルケア","2026-08","西北","1/4P FO",25000]],["デイサービス ひだまり",5,"クーポン持参が20件以上あった",4,"ちょうどよい価格","",2,["介護・福祉","2026-11","岩倉","1P",120000]],["行政書士 まるやま事務所",5,"体験の申し込みが12件、うち5件入会",5,"価格以上の反響があった","",2,["終活・士業","2026-08","津島","1/8P FO",12000]],["デイサービス ひだまり 本店",3,"反響はぼちぼち",4,"費用対効果満足度が得られた","エリアを広げていきたい",0,["介護・福祉","2026-09","一宮","1/4P FO",25000]],["寿司 はま栄",2,"反響はほとんどなかった",2,"","",-1,["グルメ","2026-07","西北","1/4P AD",30000]],["ヨガ教室 しずく 駅前店",3,"少し来店が増えた気がする",2,"高く感じた","次回も掲載したい",0,["トータルケア","2026-08","一宮","1/2P AD",70000]],["古着屋 ヴィンテ",2,"時期が合わなかったのか反応がなかった",1,"もう少し安いと続けやすい","",0,["ショップ","2026-08","一宮","1/4P FO",25000]],["花屋 はなまる",4,"新規のお客さまが8件増えた",5,"","サイズを大きくしてみたい",0,["ショップ","2026-10","江南","1/8P FO",12000]],["そろばん塾 けいさん",5,"電話の問い合わせが倍になった",4,"ちょうどよい価格","次回も掲載したい",0,["スクール","2026-06","清須","1P",120000]],["ネイル リリー",3,"問い合わせが2〜3件",2,"高く感じた","",2,["トータルケア","2026-07","岩倉","1/6P FO",18000]],["さくら眼科",5,"予約が月10件ほど増えた",4,"価格以上の反響があった","エリアを広げていきたい",1,["クリニック","2026-10","清須","1P",120000]],["外壁塗装 いろどり 本店",4,"問い合わせが15件あった",3,"もう少し安いと続けやすい","",3,["暮らし","2026-08","津島","1/2P FO",55000]],["花屋 はなまる 本店",4,"問い合わせが15件あった",2,"反響はあったが費用的には少し高く感じた","サイズを大きくしてみたい",3,["ショップ","2026-10","岩倉","1P",120000]],["工務店 木のいえ 本店",2,"反響はほとんどなかった",2,"反響はあったが費用的には少し高く感じた","求人でも使いたい",-1,["暮らし","2026-07","岩倉","1/4P AD",30000]],["ヨガ教室 しずく 北店",2,"問い合わせは0件",2,"反響はあったが費用的には少し高く感じた","次回も掲載したい",0,["トータルケア","2026-07","江南","1/8P FO",12000]],["訪問看護 えがお 本店",3,"常連さんから声をかけられた",1,"高く感じた","",2,["介護・福祉","2026-11","一宮","1P",120000]],["そろばん塾 けいさん 本店",4,"予約が月10件ほど増えた",4,"ちょうどよい価格","エリアを広げていきたい",2,["スクール","2026-10","一宮","1/8P FO",12000]]];
 PEOPLE.forEach(function (p) { mem.appendRow([p[0], p[1], ""]); });
 function load(code, user, names) { var env = GasMock.makeEnv(store, { owner: "sample@k-create.co.jp", user: user }); env.SpreadsheetApp.getActiveSpreadsheet = function () { return store[SHEET_ID]; };
   env.HtmlService = {}; var keys = Object.keys(env).filter(function (k) { return /^[A-Za-z]/.test(k); });
@@ -425,13 +431,14 @@ function card(r) {
     if (can && r.ownerEmail) acts.push('<button class="btn sm" data-a="release" data-id="' + r.id + '">担当をはずす</button>');
     if (can) acts.push('<button class="btn sm red" data-a="del" data-id="' + r.id + '">削除</button>');
   }
-  var qa = function (t, v) { return v ? '<div class="qa"><b>' + t + '</b>' + esc(v) + '</div>' : ''; };
-  return '<div class="rc' + (r.deleted ? ' del' : '') + '"><h3>' + esc(r.keisai) + '<span class="at">' + esc(r.at) + (r.deleted ? '（削除済み）' : '') + '</span></h3>'
+  // どのカードも同じ形（各欄2行まで・長い分は見切れる・全文はカーソルを合わせると出る）
+  var qa = function (t, v, one) { return '<div class="qa' + (one ? ' one' : '') + '"><b>' + t + '</b><div class="t' + (v ? '' : ' no') + '"' + (v ? ' title="' + esc(v) + '"' : '') + '>' + (v ? esc(v) : '（記入なし）') + '</div></div>'; };
+  return '<div class="rc' + (r.deleted ? ' del' : '') + '"><h3><span class="nm" title="' + esc(r.keisai) + '">' + esc(r.keisai) + '</span><span class="at">' + esc(r.at) + (r.deleted ? '（削除済み）' : '') + '</span></h3>'
     + '<div class="sat">' + pill(r.satHankyo, '反響') + pill(r.satCost, '費用感') + '</div>'
-    + qa('② 具体的な反響', r.hankyo) + qa('④ 費用感の理由', r.riyu) + qa('⑤ ご要望', r.youbou)
-    + (r.memo ? qa('社内メモ', r.memo) : '')
+    + qa('② 具体的な反響', r.hankyo) + qa('④ 費用感の理由', r.riyu, true) + qa('⑤ ご要望', r.youbou, true)
+    + qa('社内メモ', r.memo, true)
     + '<div class="sales">' + chips.join('') + '</div>'
-    + (acts.length ? '<div class="acts">' + acts.join('') + '</div>' : '') + '</div>';
+    + '<div class="acts">' + acts.join('') + '</div></div>';
 }
 function cardsHtml(rows, emptyText) { return rows.length ? '<div class="cards">' + rows.map(card).join('') + '</div>' : '<div class="empty">' + emptyText + '</div>'; }
 document.getElementById('main').addEventListener('click', function (e) {
