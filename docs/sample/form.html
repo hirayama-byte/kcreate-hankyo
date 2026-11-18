@@ -26,7 +26,7 @@ textarea{min-height:110px;resize:vertical}
 input::placeholder,textarea::placeholder{color:var(--ph);opacity:1}
 input:focus,textarea:focus{outline:none;border-color:#3b82f6;box-shadow:0 0 0 3px rgba(59,130,246,.15)}
 .scale{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
-.scale label{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;border:1px solid #cbd5e1;border-radius:8px;padding:10px 1px;font-size:12.5px;line-height:1.3;letter-spacing:-.03em;word-break:keep-all;cursor:pointer;min-height:64px;background:#fff}
+.scale label{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;border:1px solid #cbd5e1;border-radius:8px;padding:10px 1px;font-size:12.5px;line-height:1.3;letter-spacing:-.03em;word-break:keep-all;cursor:pointer;min-height:56px;background:#fff}
 .scale input{position:absolute;opacity:0;pointer-events:none}
 .scale label .f{font-size:20px;line-height:1.1;margin-bottom:2px}
 .scale label:has(input:checked){background:var(--accent2);border-color:var(--accent2);color:#fff}
@@ -48,7 +48,7 @@ footer{text-align:center;font-size:12px;color:var(--sub);margin-top:28px}
   <header>
     <div class="co">株式会社ケイ・クリエイト</div>
     <h1>お客様アンケート</h1>
-    <div class="lead">くれよんにご掲載いただきありがとうございます。<br>今後の誌面づくりとサービス向上のため、掲載後のご感想をお聞かせください。所要時間は1〜2分ほどです。</div>
+    <div class="lead">くれよんにご掲載いただきありがとうございます。<br>今後の誌面づくりとサービス向上のため、掲載後のご感想をお聞かせください。所要時間は1〜2分ほどですのでご協力お願いします。</div>
   </header>
 
   <form id="f" novalidate>
@@ -99,10 +99,10 @@ footer{text-align:center;font-size:12px;color:var(--sub);margin-top:28px}
 <script>window.API_URL = "sample";</script>
 <script>
 (function () {
-  var LEVELS = [[5, '満足', '😊'], [4, 'やや満足', '🙂'], [3, 'どちら<br>とも<br>いえない', '😐'], [2, 'やや不満', '😕'], [1, '不満', '😞']];
+  var LEVELS = [[5, '満足'], [4, 'やや<br>満足'], [3, 'どちらとも<br>いえない'], [2, 'やや<br>不満'], [1, '不満']];
   [].forEach.call(document.querySelectorAll('.scale'), function (box) {
     var name = box.dataset.name;
-    box.innerHTML = LEVELS.map(function (l) { return '<label><input type="radio" name="' + name + '" value="' + l[0] + '"><span class="f" aria-hidden="true">' + l[2] + '</span><span>' + l[1] + '</span></label>'; }).join('');
+    box.innerHTML = LEVELS.map(function (l) { return '<label><input type="radio" name="' + name + '" value="' + l[0] + '"><span>' + l[1] + '</span></label>'; }).join('');
   });
   var f = document.getElementById('f'), btn = document.getElementById('send'), msg = document.getElementById('msg');
   function val(n) { var e = f.elements[n]; if (!e) return ''; if (e.length && e[0] && e[0].type === 'radio') { var c = [].filter.call(e, function (x) { return x.checked; })[0]; return c ? c.value : ''; } return e.value.trim(); }
