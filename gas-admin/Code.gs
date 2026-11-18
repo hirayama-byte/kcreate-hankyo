@@ -104,6 +104,7 @@ function init() {
   var me = myEmail_();
   if (!me) throw new Error('会社のGoogleアカウントで開いてください');
   if (!ss_().getSheetByName('admins')) setup_();
+  if (ss_().getSpreadsheetTimeZone() !== TZ) ss_().setSpreadsheetTimeZone(TZ); // 作ったときの初期値が日本時間でないことがある（2026-11-18 9時間ずれ）
   var admin = isAdmin_(me);
   var rows = allRows_().filter(function (o) { return admin || !o.deleted; });
   return {

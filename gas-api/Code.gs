@@ -43,13 +43,17 @@ function submit_(d) {
       if (k === 'id') return id; if (k === 'at') return at;
       return row[k] == null ? '' : (typeof row[k] === 'string' ? safe_(row[k]) : row[k]);
     });
-    sh.appendRow(vals);
+    // 日時や数字を勝手に変換させない（シートのタイムゾーンに左右されないよう、文字の書式を先に付けてから書く）
+    var r = sh.getLastRow() + 1, rg = sh.getRange(r, 1, 1, vals.length);
+    rg.setNumberFormat('@'); sh.getRange(r, 4).setNumberFormat('0'); sh.getRange(r, 6).setNumberFormat('0');
+    rg.setValues([vals]);
     return { ok: true };
   } finally { lock.releaseLock(); }
 }
 
 function sheet_() {
   var ss = SpreadsheetApp.getActiveSpreadsheet(), sh = ss.getSheetByName('responses');
+  if (ss.getSpreadsheetTimeZone && ss.getSpreadsheetTimeZone() !== TZ) ss.setSpreadsheetTimeZone(TZ);
   if (!sh) {
     sh = ss.insertSheet('responses');
     sh.getRange(1, 1, 1, RESP_HEAD.length).setValues([RESP_HEAD]);
