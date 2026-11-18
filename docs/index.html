@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>サービス向上のためのアンケート｜ケイ・クリエイト</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#0f172a;--sub:#64748b;--line:#e2e8f0;--bg:#f1f5f9;--card:#fff;--accent:#dc2626;--accent2:#2563eb;--ph:#a0aec0}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Noto Sans JP",system-ui,-apple-system,"Hiragino Sans","Yu Gothic UI",sans-serif;font-size:16px;line-height:1.7}
+.wrap{max-width:640px;margin:0 auto;padding:20px 16px 48px}
+header{text-align:center;padding:12px 0 18px}
+header .co{font-size:12px;letter-spacing:.15em;color:var(--sub)}
+h1{font-size:22px;margin:6px 0 10px;color:var(--ink);line-height:1.45}
+.lead{font-size:14px;color:var(--sub);text-align:left;background:var(--card);border-radius:10px;padding:14px 16px;border:1px solid var(--line)}
+.q{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin-top:14px}
+.q label.t{display:block;font-weight:bold;margin-bottom:8px}
+.q .n{display:inline-block;min-width:1.6em;color:var(--accent2)}
+.req{display:inline-block;font-size:11px;background:var(--accent);color:#fff;border-radius:3px;padding:0 6px;margin-left:6px;vertical-align:2px;font-weight:normal}
+.opt{display:inline-block;font-size:11px;background:#ddd;color:#555;border-radius:3px;padding:0 6px;margin-left:6px;vertical-align:2px;font-weight:normal}
+input[type=text],textarea{width:100%;font:inherit;border:1px solid #cbd5e1;border-radius:8px;padding:10px 12px;background:#fff;color:var(--ink)}
+textarea{min-height:110px;resize:vertical}
+input::placeholder,textarea::placeholder{color:var(--ph);opacity:1}
+input:focus,textarea:focus{outline:none;border-color:#3b82f6;box-shadow:0 0 0 3px rgba(59,130,246,.15)}
+.scale{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.scale label{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;border:1px solid #cbd5e1;border-radius:8px;padding:10px 1px;font-size:12.5px;line-height:1.3;letter-spacing:-.03em;word-break:keep-all;cursor:pointer;min-height:64px;background:#fff}
+.scale input{position:absolute;opacity:0;pointer-events:none}
+.scale label .f{font-size:20px;line-height:1.1;margin-bottom:2px}
+.scale label:has(input:checked){background:var(--accent2);border-color:var(--accent2);color:#fff}
+.scale label:has(input:focus-visible){outline:2px solid #3b82f6}
+.err{color:var(--accent);font-size:13px;margin-top:6px;display:none}
+.q.bad .err{display:block}.q.bad{border-color:var(--accent)}
+.hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+button{width:100%;font:inherit;font-weight:bold;font-size:17px;border:0;border-radius:10px;padding:14px;background:var(--accent2);color:#fff;margin-top:22px;cursor:pointer}
+button:disabled{opacity:.6}
+.msg{margin-top:12px;color:var(--accent);font-size:14px;text-align:center;min-height:1em}
+.done{display:none;text-align:center;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:32px 16px;margin-top:20px}
+.done h2{color:var(--ink);font-size:20px;margin:0 0 8px}
+footer{text-align:center;font-size:12px;color:var(--sub);margin-top:28px}
+@media (max-width:380px){.scale label{font-size:11px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="co">株式会社ケイ・クリエイト</div>
+    <h1>サービス向上のための<br>アンケート</h1>
+    <div class="lead">いつもご掲載いただき、ありがとうございます。<br>今後の誌面づくりとサービス向上のため、掲載後のご感想をお聞かせください。所要時間は1〜2分ほどです。</div>
+  </header>
+
+  <form id="f" novalidate>
+    <div class="q" data-k="keisai">
+      <label class="t" for="keisai">掲載名<span class="req">必須</span></label>
+      <input type="text" id="keisai" name="keisai" maxlength="100" autocomplete="organization" placeholder="例：〇〇整骨院">
+      <div class="err">掲載名を入力してください</div>
+    </div>
+
+    <div class="q" data-k="sat_hankyo">
+      <span class="t" style="display:block;font-weight:bold;margin-bottom:8px"><span class="n">①</span>反響の満足度を教えてください<span class="req">必須</span></span>
+      <div class="scale" role="radiogroup" aria-label="反響の満足度" data-name="sat_hankyo"></div>
+      <div class="err">どれか1つ選んでください</div>
+    </div>
+
+    <div class="q">
+      <label class="t" for="hankyo"><span class="n">②</span>具体的な反響を教えてください<span class="opt">任意</span></label>
+      <textarea id="hankyo" name="hankyo" maxlength="1000" placeholder="10件の応募があった・5件の新規獲得ができた・売上が上がった・来店が増えたなど"></textarea>
+    </div>
+
+    <div class="q" data-k="sat_cost">
+      <span class="t" style="display:block;font-weight:bold;margin-bottom:8px"><span class="n">③</span>費用感の満足度を教えてください<span class="req">必須</span></span>
+      <div class="scale" role="radiogroup" aria-label="費用感の満足度" data-name="sat_cost"></div>
+      <div class="err">どれか1つ選んでください</div>
+    </div>
+
+    <div class="q">
+      <label class="t" for="riyu"><span class="n">④</span>その理由を教えてください<span class="opt">任意</span></label>
+      <textarea id="riyu" name="riyu" maxlength="1000" placeholder="費用対効果満足度が得られた・反響はあったが費用的には高く感じたなど"></textarea>
+    </div>
+
+    <div class="q">
+      <label class="t" for="youbou"><span class="n">⑤</span>ご要望をお聞かせください<span class="opt">任意</span></label>
+      <textarea id="youbou" name="youbou" maxlength="1000" placeholder="次回も掲載したい・エリアを広げていきたい・HPやAIについても相談したいなど"></textarea>
+    </div>
+
+    <div class="hp" aria-hidden="true"><label>website<input type="text" name="website" tabindex="-1" autocomplete="off"></label></div>
+    <button type="submit" id="send">送信する</button>
+    <div class="msg" id="msg" role="alert"></div>
+  </form>
+
+  <div class="done" id="done">
+    <h2>ご協力ありがとうございました</h2>
+    <p>いただいたご意見は、今後の誌面づくりとサービス向上に役立てさせていただきます。</p>
+  </div>
+  <footer>株式会社ケイ・クリエイト</footer>
+</div>
+<script src="config.js"></script>
+<script>
+(function () {
+  var LEVELS = [[5, '満足', '😊'], [4, 'やや満足', '🙂'], [3, 'どちら<br>とも<br>いえない', '😐'], [2, 'やや不満', '😕'], [1, '不満', '😞']];
+  [].forEach.call(document.querySelectorAll('.scale'), function (box) {
+    var name = box.dataset.name;
+    box.innerHTML = LEVELS.map(function (l) { return '<label><input type="radio" name="' + name + '" value="' + l[0] + '"><span class="f" aria-hidden="true">' + l[2] + '</span><span>' + l[1] + '</span></label>'; }).join('');
+  });
+  var f = document.getElementById('f'), btn = document.getElementById('send'), msg = document.getElementById('msg');
+  function val(n) { var e = f.elements[n]; if (!e) return ''; if (e.length && e[0] && e[0].type === 'radio') { var c = [].filter.call(e, function (x) { return x.checked; })[0]; return c ? c.value : ''; } return e.value.trim(); }
+  f.addEventListener('change', function (e) { var q = e.target.closest('.q'); if (q) q.classList.remove('bad'); });
+  f.addEventListener('input', function (e) { msg.textContent = ''; var q = e.target.closest('.q'); if (q) q.classList.remove('bad'); });
+  f.addEventListener('submit', function (e) {
+    e.preventDefault(); msg.textContent = '';
+    var data = { keisai: val('keisai'), sat_hankyo: val('sat_hankyo'), hankyo: val('hankyo'), sat_cost: val('sat_cost'), riyu: val('riyu'), youbou: val('youbou'), website: val('website') };
+    var bad = null;
+    ['keisai', 'sat_hankyo', 'sat_cost'].forEach(function (k) { var q = f.querySelector('.q[data-k="' + k + '"]'); var ng = !data[k]; q.classList.toggle('bad', ng); if (ng && !bad) bad = q; });
+    if (bad) { bad.scrollIntoView({ behavior: 'smooth', block: 'center' }); msg.textContent = '入力されていない項目があります'; return; }
+    if (!window.API_URL) { msg.textContent = '送信先が設定されていません'; return; }
+    btn.disabled = true; btn.textContent = '送信しています…';
+    fetch(window.API_URL, { method: 'POST', body: JSON.stringify({ action: 'submit', data: data }) })
+      .then(function (r) { return r.json(); })
+      .then(function (r) {
+        if (r && r.ok) { f.style.display = 'none'; document.getElementById('done').style.display = 'block'; window.scrollTo(0, 0); return; }
+        throw new Error(r && r.error || '送信できませんでした');
+      })
+      .catch(function (err) { msg.textContent = (err && err.message ? err.message : '送信できませんでした') + '。時間をおいてもう一度お試しください。'; btn.disabled = false; btn.textContent = '送信する'; });
+  });
+})();
+</script>
+</body>
+</html>

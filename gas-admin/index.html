@@ -1,0 +1,338 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<base target="_top">
+<meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+:root{--side:#0f172a;--side-2:#1e293b;--side-line:#273449;--side-text:#94a3b8;--side-hi:#f1f5f9;--bg:#f1f5f9;--card:#fff;--line:#e2e8f0;--line-2:#f1f5f9;--text:#0f172a;--muted:#64748b;--faint:#94a3b8;--accent:#2563eb;--accent-2:#3b82f6;--accent-weak:#eff6ff;--danger:#dc2626;--ok:#16a34a;--mono:"JetBrains Mono",ui-monospace,Consolas,monospace;--radius:10px;
+--s5:#16a34a;--s4:#84cc16;--s3:#cbd5e1;--s2:#f59e0b;--s1:#dc2626}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:"Noto Sans JP",system-ui,-apple-system,"Hiragino Sans","Yu Gothic UI",sans-serif;font-size:14px;line-height:1.6}
+.app{display:grid;grid-template-columns:240px 1fr;min-height:100vh}
+.side{background:var(--side);color:var(--side-text);display:flex;flex-direction:column;position:sticky;top:0;height:100vh}
+.brand{display:flex;align-items:center;gap:10px;padding:18px 18px 16px;border-bottom:1px solid var(--side-line)}
+.brand .logo{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,#3b82f6,#6366f1);display:grid;place-items:center}
+.brand b{display:block;color:var(--side-hi);font-size:14px;letter-spacing:.02em}
+.brand small{font-family:var(--mono);font-size:10px;letter-spacing:.14em;color:var(--side-text)}
+#tabs{padding:12px 10px;display:flex;flex-direction:column;gap:2px}
+#tabs button{display:flex;align-items:center;gap:10px;width:100%;border:0;background:none;color:var(--side-text);font:inherit;font-size:13.5px;padding:9px 12px;border-radius:8px;cursor:pointer;text-align:left}
+#tabs button svg{width:16px;height:16px;flex:none}
+#tabs button:hover{background:var(--side-2);color:var(--side-hi)}
+#tabs button.on{background:var(--side-2);color:#fff;box-shadow:inset 3px 0 0 var(--accent-2)}
+#tabs .badge{margin-left:auto;background:var(--danger);color:#fff;border-radius:999px;font-family:var(--mono);font-size:11px;padding:0 7px}
+.side .sp{flex:1}
+.me{border-top:1px solid var(--side-line);padding:12px 18px;display:flex;align-items:center;gap:10px;font-size:13px;color:var(--side-hi)}
+.me small{display:block;color:var(--side-text);font-size:11px}
+.avatar{width:30px;height:30px;border-radius:50%;background:var(--side-2);color:var(--side-hi);display:grid;place-items:center;font-size:12px;font-weight:700;flex:none}
+.main{min-width:0}
+.topbar{height:60px;background:var(--card);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px;padding:0 28px;position:sticky;top:0;z-index:5}
+.topbar h1{font-size:17px;margin:0}
+.topbar .crumb{color:var(--faint);font-size:12px}
+main{padding:24px 28px;max-width:1280px}
+input,select,.btn{font:inherit;font-size:13.5px;height:36px;padding:0 12px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--text)}
+input[type=checkbox]{height:auto}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent-2);box-shadow:0 0 0 3px rgba(59,130,246,.15)}
+.btn{cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-weight:500;white-space:nowrap}
+.btn:hover{background:#f8fafc}
+.btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+.btn.primary:hover{background:#1d4ed8}
+.btn.red{color:var(--danger);border-color:#fecaca}
+.btn.sm{height:30px;font-size:12.5px;padding:0 10px}
+.btn:disabled{opacity:.5;cursor:default}
+.bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px 18px;margin-bottom:16px}
+.bar .sp{flex:1}
+.hint{color:var(--muted);font-size:12.5px}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px}
+.rc{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px;display:flex;flex-direction:column;gap:8px}
+.rc.del{opacity:.55}
+.rc h3{margin:0;font-size:15px;font-weight:700;display:flex;gap:8px;align-items:baseline}
+.rc h3 .at{margin-left:auto;font-size:12px;color:var(--faint);font-weight:500;font-family:var(--mono);white-space:nowrap}
+.sat{display:flex;gap:6px;flex-wrap:wrap}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:2px 9px;border-radius:999px;font-size:12px;white-space:nowrap;background:var(--pb);color:var(--pc)}
+.pill::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--pc)}
+.p5{--pb:#dcfce7;--pc:#15803d}.p4{--pb:#ecfccb;--pc:#4d7c0f}.p3{--pb:#f1f5f9;--pc:#475569}.p2{--pb:#fef3c7;--pc:#b45309}.p1{--pb:#fee2e2;--pc:#b91c1c}
+.qa{font-size:13px;white-space:pre-wrap;word-break:break-word}
+.qa b{display:block;font-size:11px;color:var(--muted);font-weight:500;letter-spacing:.04em}
+.sales{display:flex;flex-wrap:wrap;gap:4px;font-size:12px;border-top:1px solid var(--line-2);padding-top:8px}
+.chip{background:var(--accent-weak);color:var(--accent);border-radius:5px;padding:1px 7px}
+.chip.none{background:#fff7ed;color:#c2410c}
+.acts{display:flex;gap:6px;flex-wrap:wrap}
+.empty{background:var(--card);border:1.5px dashed var(--line);border-radius:var(--radius);padding:32px;text-align:center;color:var(--faint)}
+.tblw{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);overflow:auto}
+table.st{width:100%;border-collapse:collapse}
+table.st th,table.st td{padding:11px 14px;border-bottom:1px solid var(--line-2);text-align:left;vertical-align:middle;font-size:13px}
+table.st th{font-size:11px;color:var(--muted);font-weight:500;letter-spacing:.06em;white-space:nowrap;background:#f8fafc;border-bottom:1px solid var(--line)}
+table.st td.n{text-align:right;white-space:nowrap;font-family:var(--mono)}
+.dist{display:flex;height:8px;border-radius:4px;overflow:hidden;min-width:160px;background:#eef2f7}
+.dist span{display:block;height:100%}
+.legend{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin:0 0 10px}
+.legend i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px;vertical-align:1px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:16px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px}
+.kpi .l{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px}
+.kpi .l i{width:7px;height:7px;border-radius:2px;display:inline-block}
+.kpi .v{font-family:var(--mono);font-size:26px;font-weight:500;margin-top:6px;letter-spacing:-.01em}
+.kpi .v small{font-size:12px;color:var(--faint);margin-left:4px;font-family:"Noto Sans JP",sans-serif}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{border:0;border-right:1px solid var(--line);background:#fff;font:inherit;font-size:12.5px;padding:0 12px;height:34px;cursor:pointer;color:var(--muted)}
+.seg button:last-child{border-right:0}
+.seg button.on{background:var(--accent-weak);color:var(--accent);font-weight:500}
+h2.sec{font-size:14px;margin:22px 0 10px;color:var(--text)}
+dialog{border:0;border-radius:12px;padding:0;width:min(520px,94vw);box-shadow:0 20px 50px rgba(15,23,42,.25)}
+dialog::backdrop{background:rgba(15,23,42,.45)}
+.dlg{padding:20px 22px}
+.dlg h3{margin:0 0 2px;font-size:16px}
+.fld{margin-top:12px}
+.fld label{display:block;font-size:12.5px;font-weight:500;color:var(--muted);margin-bottom:4px}
+.fld input,.fld select,.fld textarea{width:100%}
+.fld textarea{font:inherit;border:1px solid var(--line);border-radius:8px;padding:8px 12px;min-height:70px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.dlg .acts{justify-content:flex-end;margin-top:16px}
+.msg{font-size:13px;margin-top:8px;min-height:1em}
+.msg.err{color:var(--danger)}
+.formbox{display:flex;gap:18px;align-items:center;flex-wrap:wrap}
+#qr{background:#fff;padding:8px;border:1px solid var(--line);border-radius:8px}
+#qr img,#qr canvas{display:block;width:120px;height:120px}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#0f172a;color:#fff;border-radius:8px;padding:9px 16px;font-size:13px;display:none;z-index:20}
+.loading{padding:40px;text-align:center;color:var(--faint)}
+a{color:var(--accent)}
+@media (max-width:900px){.app{grid-template-columns:1fr}.side{position:static;height:auto}.brand{padding:12px 16px}#tabs{flex-direction:row;flex-wrap:wrap;padding:8px}#tabs button{width:auto;padding:7px 10px}.side .sp,.me{display:none}.topbar{padding:0 16px;height:52px}main{padding:16px}.cards{grid-template-columns:1fr}.row2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="app">
+<aside class="side">
+  <div class="brand"><div class="logo"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></div><div><b>反響事例管理</b><small>K-CREATE</small></div></div>
+  <nav id="tabs">
+    <button data-t="todo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2M5.45 5.11L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.45-6.89A2 2 0 0016.76 4H7.24a2 2 0 00-1.79 1.11z"/></svg>未割り当て<span class="badge" id="nTodo" style="display:none"></span></button>
+    <button data-t="list" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>一覧</button>
+    <button data-t="stats"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>分析</button>
+    <button data-t="cases"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/></svg>事例</button>
+    <button data-t="settings" id="tabSettings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h3v3h-3zM20 14v.01M14 20h.01M17 17v4M20 17v4"/></svg>フォーム・設定</button>
+  </nav>
+  <div class="sp"></div>
+  <div class="me"><span class="avatar" id="meAv">?</span><div><span id="me"></span><small id="meRole"></small></div></div>
+</aside>
+<div class="main">
+<header class="topbar"><h1 id="pageTitle">一覧</h1><span class="crumb" id="crumb"></span></header>
+<main id="main"><div class="loading">読み込んでいます…</div></main>
+</div></div>
+<dialog id="dlg"><div class="dlg">
+  <h3 id="dTitle">担当の情報</h3>
+  <div class="hint" id="dSub"></div>
+  <div class="row2">
+    <div class="fld"><label>ジャンル</label><select id="dGenre"></select></div>
+    <div class="fld"><label>掲載月</label><input type="month" id="dMonth"></div>
+  </div>
+  <div class="row2">
+    <div class="fld"><label>媒体</label><select id="dMedia"></select></div>
+    <div class="fld"><label>掲載サイズ・枠</label><select id="dSize"></select></div>
+  </div>
+  <div class="fld"><label>掲載料金（税抜・円）</label><input type="text" id="dPrice" inputmode="numeric" placeholder="例：30000"></div>
+  <div class="fld"><label>メモ（社内用・任意）</label><textarea id="dMemo" placeholder="例：次回は2回掲載で提案予定"></textarea></div>
+  <div class="msg" id="dMsg"></div>
+  <div class="acts"><button class="btn" id="dCancel">閉じる</button><button class="btn primary" id="dSave">保存する</button></div>
+</div></dialog>
+<div class="toast" id="toast"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+var S = { me: {}, masters: {}, rows: [], tab: 'list', f: { q: '', genre: '', media: '', month: '', owner: '', sat: '', mine: false }, st: { by: 'genre', from: '', to: '' }, cs: { genre: '', media: '' }, editId: null };
+var LV = { 5: '満足', 4: 'やや満足', 3: 'どちらともいえない', 2: 'やや不満', 1: '不満' };
+var COLORS = { 5: 'var(--s5)', 4: 'var(--s4)', 3: 'var(--s3)', 2: 'var(--s2)', 1: 'var(--s1)' };
+function $(id) { return document.getElementById(id); }
+function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+function run(fn) { var args = [].slice.call(arguments, 1); return new Promise(function (ok, ng) { google.script.run.withSuccessHandler(ok).withFailureHandler(function (e) { ng(e && e.message ? e : new Error(String(e))); })[fn].apply(null, args); }); }
+function toast(t) { var e = $('toast'); e.textContent = t; e.style.display = 'block'; clearTimeout(toast.tm); toast.tm = setTimeout(function () { e.style.display = 'none'; }, 2600); }
+function yen(n) { return n === '' || n == null ? '' : Number(n).toLocaleString('ja-JP') + '円'; }
+function pill(n, label) { return n ? '<span class="pill p' + n + '">' + esc(label) + '：' + esc(LV[n]) + '</span>' : ''; }
+function fmtMonth(m) { return m ? m.replace(/^(\d{4})-(\d{2})$/, function (_, y, mm) { return y + '年' + Number(mm) + '月'; }) : ''; }
+function live() { return S.rows.filter(function (r) { return !r.deleted; }); }
+function upsert(r) { var i = S.rows.findIndex(function (x) { return x.id === r.id; }); if (i >= 0) S.rows[i] = r; else S.rows.unshift(r); }
+
+run('init').then(function (d) {
+  S.me = d.me; S.masters = d.masters; S.formUrl = d.formUrl; S.sheetUrl = d.sheetUrl;
+  S.rows = d.rows.sort(function (a, b) { return a.at < b.at ? 1 : -1; });
+  $('me').textContent = d.me.name; $('meRole').textContent = d.me.isAdmin ? '管理者' : 'メンバー'; $('meAv').textContent = (d.me.name || '?').charAt(0);
+  if (!live().some(function (r) { return !r.ownerEmail; }) && !S.rows.length) S.tab = 'settings';
+  else if (live().some(function (r) { return !r.ownerEmail; })) S.tab = 'todo';
+  draw();
+}).catch(function (e) { $('main').innerHTML = '<div class="empty">読み込めませんでした：' + esc(e.message) + '</div>'; });
+
+document.getElementById('tabs').onclick = function (e) { var b = e.target.closest('button'); if (!b) return; S.tab = b.dataset.t; draw(); window.scrollTo(0, 0); };
+
+function draw() {
+  [].forEach.call(document.querySelectorAll('#tabs button'), function (b) { b.classList.toggle('on', b.dataset.t === S.tab); });
+  $('pageTitle').textContent = { todo: '未割り当て', list: '回答一覧', stats: '分析', cases: '事例', settings: 'フォーム・設定' }[S.tab];
+  $('crumb').textContent = { todo: '/ 担当が決まっていない回答', list: '/ 全社', stats: '/ 満足度の平均と内訳', cases: '/ 反響が良かった回答', settings: '/ アンケートのURL・QR' }[S.tab];
+  var n = live().filter(function (r) { return !r.ownerEmail; }).length;
+  $('nTodo').style.display = n ? '' : 'none'; $('nTodo').textContent = n;
+  ({ todo: drawTodo, list: drawList, stats: drawStats, cases: drawCases, settings: drawSettings })[S.tab]();
+}
+
+// ---------- カード ----------
+function card(r) {
+  var mine = r.ownerEmail === S.me.email, can = mine || S.me.isAdmin;
+  var chips = [];
+  if (r.ownerEmail) chips.push('<span class="chip">担当 ' + esc(r.ownerName) + '</span>'); else chips.push('<span class="chip none">担当なし</span>');
+  [['genre', ''], ['media', ''], ['size', ''], ['month', '']].forEach(function (k) { var v = k[0] === 'month' ? fmtMonth(r.month) : r[k[0]]; if (v) chips.push('<span class="chip">' + esc(v) + (k[0] === 'media' ? '版' : '') + '</span>'); });
+  if (r.price !== '') chips.push('<span class="chip">' + yen(r.price) + '</span>');
+  if (r.ownerEmail && (!r.genre || !r.month || !r.media)) chips.push('<span class="chip none">担当の情報が未入力</span>');
+  var acts = [];
+  if (r.deleted) { if (S.me.isAdmin) acts.push('<button class="btn sm" data-a="restore" data-id="' + r.id + '">戻す</button>'); }
+  else {
+    if (!r.ownerEmail) acts.push('<button class="btn sm primary" data-a="claim" data-id="' + r.id + '">自分の担当にする</button>');
+    if (can || !r.ownerEmail) acts.push('<button class="btn sm" data-a="edit" data-id="' + r.id + '">' + (r.genre || r.month ? '担当の情報を直す' : '担当の情報を入れる') + '</button>');
+    if (can && r.ownerEmail) acts.push('<button class="btn sm" data-a="release" data-id="' + r.id + '">担当をはずす</button>');
+    if (can) acts.push('<button class="btn sm red" data-a="del" data-id="' + r.id + '">削除</button>');
+  }
+  var qa = function (t, v) { return v ? '<div class="qa"><b>' + t + '</b>' + esc(v) + '</div>' : ''; };
+  return '<div class="rc' + (r.deleted ? ' del' : '') + '"><h3>' + esc(r.keisai) + '<span class="at">' + esc(r.at) + (r.deleted ? '（削除済み）' : '') + '</span></h3>'
+    + '<div class="sat">' + pill(r.satHankyo, '反響') + pill(r.satCost, '費用感') + '</div>'
+    + qa('② 具体的な反響', r.hankyo) + qa('④ 費用感の理由', r.riyu) + qa('⑤ ご要望', r.youbou)
+    + (r.memo ? qa('社内メモ', r.memo) : '')
+    + '<div class="sales">' + chips.join('') + '</div>'
+    + (acts.length ? '<div class="acts">' + acts.join('') + '</div>' : '') + '</div>';
+}
+function cardsHtml(rows, emptyText) { return rows.length ? '<div class="cards">' + rows.map(card).join('') + '</div>' : '<div class="empty">' + emptyText + '</div>'; }
+document.getElementById('main').addEventListener('click', function (e) {
+  var b = e.target.closest('button[data-a]'); if (!b) return;
+  var id = b.dataset.id, a = b.dataset.a;
+  if (a === 'edit') return openEdit(id);
+  if (a === 'del') {
+    if (!b.dataset.arm) { b.dataset.arm = '1'; b.textContent = 'もう一度押すと削除'; setTimeout(function () { delete b.dataset.arm; b.textContent = '削除'; }, 4000); return; }
+  }
+  b.disabled = true;
+  var p = a === 'claim' ? run('claim', id) : a === 'release' ? run('release', id) : a === 'del' ? run('removeRow', id).then(function () { var r = S.rows.find(function (x) { return x.id === id; }); r.deleted = 'now'; return null; }) : a === 'restore' ? run('restoreRow', id) : null;
+  if (!p) return;
+  p.then(function (r) {
+    if (r) upsert(r);
+    if (a === 'del' && !S.me.isAdmin) S.rows = S.rows.filter(function (x) { return x.id !== id; });
+    toast({ claim: '自分の担当にしました。担当の情報も入れてください', release: '担当をはずしました', del: '削除しました', restore: '戻しました' }[a]);
+    draw();
+    if (a === 'claim') openEdit(id);
+  }).catch(function (err) { b.disabled = false; toast(err.message); });
+});
+
+// ---------- 未割り当て ----------
+function drawTodo() {
+  var rows = live().filter(function (r) { return !r.ownerEmail; });
+  var mineTodo = live().filter(function (r) { return r.ownerEmail === S.me.email && (!r.genre || !r.month || !r.media); });
+  $('main').innerHTML = '<div class="bar"><span class="hint">フォームから届いて、まだ担当が決まっていない回答です。自分のお客さんの回答に「自分の担当にする」を押して、ジャンル・掲載月・媒体・サイズ・料金を入れてください。</span></div>'
+    + cardsHtml(rows, '担当が決まっていない回答はありません')
+    + (mineTodo.length ? '<h2 class="sec">自分の担当で、担当の情報がまだの回答（' + mineTodo.length + '件）</h2>' + cardsHtml(mineTodo, '') : '');
+}
+
+// ---------- 一覧 ----------
+function opts(list, cur, first) { return '<option value="">' + first + '</option>' + list.map(function (v) { return '<option' + (v === cur ? ' selected' : '') + '>' + esc(v) + '</option>'; }).join(''); }
+function owners() { var m = {}; S.rows.forEach(function (r) { if (r.ownerEmail) m[r.ownerEmail] = r.ownerName; }); return Object.keys(m).map(function (k) { return [k, m[k]]; }).sort(function (a, b) { return a[1] < b[1] ? -1 : 1; }); }
+function months() { var m = {}; S.rows.forEach(function (r) { if (r.month) m[r.month] = 1; }); return Object.keys(m).sort().reverse(); }
+function drawList() {
+  var f = S.f, q = f.q.trim().toLowerCase();
+  var rows = (S.me.isAdmin && f.showDel ? S.rows : live()).filter(function (r) {
+    if (q && [r.keisai, r.hankyo, r.riyu, r.youbou, r.memo, r.ownerName].join('\n').toLowerCase().indexOf(q) < 0) return false;
+    if (f.genre && r.genre !== f.genre) return false; if (f.media && r.media !== f.media) return false;
+    if (f.month && r.month !== f.month) return false; if (f.owner && r.ownerEmail !== f.owner) return false;
+    if (f.sat && String(r.satHankyo) !== f.sat) return false; if (f.mine && r.ownerEmail !== S.me.email) return false;
+    return true;
+  });
+  $('main').innerHTML = '<div class="bar">'
+    + '<input type="search" id="fQ" placeholder="掲載名・反響・要望で検索" value="' + esc(f.q) + '" style="min-width:220px">'
+    + '<select id="fGenre">' + opts(S.masters.genres, f.genre, 'ジャンル') + '</select>'
+    + '<select id="fMedia">' + opts(S.masters.media, f.media, '媒体') + '</select>'
+    + '<select id="fMonth">' + opts(months(), f.month, '掲載月') + '</select>'
+    + '<select id="fOwner"><option value="">担当</option>' + owners().map(function (o) { return '<option value="' + esc(o[0]) + '"' + (o[0] === f.owner ? ' selected' : '') + '>' + esc(o[1]) + '</option>'; }).join('') + '</select>'
+    + '<select id="fSat"><option value="">反響満足度</option>' + [5, 4, 3, 2, 1].map(function (n) { return '<option value="' + n + '"' + (String(n) === f.sat ? ' selected' : '') + '>' + LV[n] + '</option>'; }).join('') + '</select>'
+    + '<label class="hint"><input type="checkbox" id="fMine"' + (f.mine ? ' checked' : '') + '> 自分の担当だけ</label>'
+    + (S.me.isAdmin ? '<label class="hint"><input type="checkbox" id="fDel"' + (f.showDel ? ' checked' : '') + '> 削除したものも</label>' : '')
+    + '<span class="sp"></span><span class="hint">' + rows.length + '件</span></div>'
+    + cardsHtml(rows, S.rows.length ? '条件に合う回答はありません' : 'まだ回答はありません。「フォーム・設定」のURLやQRをクライアントに渡してください');
+  var on = function (id, k, prop) { var el = $(id); if (!el) return; el.oninput = el.onchange = function () { S.f[k] = prop ? el[prop] : el.value; var pos = id === 'fQ' ? el.selectionStart : null; drawList(); if (pos != null) { var n = $('fQ'); n.focus(); n.setSelectionRange(pos, pos); } }; };
+  on('fQ', 'q'); on('fGenre', 'genre'); on('fMedia', 'media'); on('fMonth', 'month'); on('fOwner', 'owner'); on('fSat', 'sat'); on('fMine', 'mine', 'checked'); on('fDel', 'showDel', 'checked');
+}
+
+// ---------- 分析 ----------
+var BY = { genre: ['ジャンル', function (r) { return r.genre; }], media: ['媒体', function (r) { return r.media ? r.media + '版' : ''; }], size: ['掲載サイズ', function (r) { return r.size; }], owner: ['担当', function (r) { return r.ownerName; }], month: ['掲載月', function (r) { return fmtMonth(r.month); }], price: ['掲載料金', priceBand] };
+function priceBand(r) { if (r.price === '' || r.price == null) return ''; var p = Number(r.price); return p < 20000 ? '2万円未満' : p < 50000 ? '2〜5万円' : p < 100000 ? '5〜10万円' : p < 200000 ? '10〜20万円' : '20万円以上'; }
+var BAND_ORDER = ['2万円未満', '2〜5万円', '5〜10万円', '10〜20万円', '20万円以上'];
+function avg(a) { return a.length ? a.reduce(function (s, x) { return s + x; }, 0) / a.length : 0; }
+function distHtml(vals) { var n = vals.length || 1; return '<div class="dist" title="' + [5, 4, 3, 2, 1].map(function (k) { return LV[k] + ' ' + vals.filter(function (v) { return v === k; }).length; }).join(' / ') + '">' + [5, 4, 3, 2, 1].map(function (k) { var c = vals.filter(function (v) { return v === k; }).length; return c ? '<span style="width:' + (c / n * 100) + '%;background:' + COLORS[k] + '"></span>' : ''; }).join('') + '</div>'; }
+function drawStats() {
+  var st = S.st, ms = months();
+  var rows = live().filter(function (r) { if (st.from && (!r.month || r.month < st.from)) return false; if (st.to && (!r.month || r.month > st.to)) return false; return true; });
+  var h = rows.map(function (r) { return r.satHankyo; }).filter(Boolean), c = rows.map(function (r) { return r.satCost; }).filter(Boolean);
+  var good = function (a) { return a.length ? Math.round(a.filter(function (v) { return v >= 4; }).length / a.length * 100) : 0; };
+  var get = BY[st.by][1], groups = {};
+  rows.forEach(function (r) { var k = get(r) || '（未入力）'; (groups[k] = groups[k] || []).push(r); });
+  var keys = Object.keys(groups).sort(function (a, b) {
+    if (a === '（未入力）') return 1; if (b === '（未入力）') return -1;
+    if (st.by === 'price') return BAND_ORDER.indexOf(a) - BAND_ORDER.indexOf(b);
+    if (st.by === 'month') return a < b ? 1 : -1;
+    return groups[b].length - groups[a].length;
+  });
+  var tbl = '<div class="tblw"><table class="st"><tr><th>' + BY[st.by][0] + '</th><th>件数</th><th>反響満足度（平均）</th><th>反響の内訳</th><th>費用感満足度（平均）</th><th>費用感の内訳</th></tr>'
+    + keys.map(function (k) { var g = groups[k], hh = g.map(function (r) { return r.satHankyo; }).filter(Boolean), cc = g.map(function (r) { return r.satCost; }).filter(Boolean);
+      return '<tr><td>' + esc(k) + '</td><td class="n">' + g.length + '</td><td class="n">' + (hh.length ? avg(hh).toFixed(1) : '—') + '</td><td>' + distHtml(hh) + '</td><td class="n">' + (cc.length ? avg(cc).toFixed(1) : '—') + '</td><td>' + distHtml(cc) + '</td></tr>'; }).join('') + '</table></div>';
+  $('main').innerHTML = '<div class="bar"><span>掲載月</span><select id="sFrom">' + opts(ms.slice().reverse(), st.from, 'はじめから') + '</select><span>〜</span><select id="sTo">' + opts(ms, st.to, '最新まで') + '</select>'
+    + '<span class="sp"></span><span class="hint">満足度は 満足=5 ・やや満足=4 ・どちらともいえない=3 ・やや不満=2 ・不満=1 の平均</span></div>'
+    + '<div class="kpis"><div class="kpi"><div class="l"><i style="background:#6366f1"></i>回答数</div><div class="v">' + rows.length + '<small>件</small></div></div>'
+    + '<div class="kpi"><div class="l"><i style="background:#16a34a"></i>反響満足度の平均</div><div class="v">' + (h.length ? avg(h).toFixed(1) : '—') + '<small>/ 5</small></div><div class="hint">満足・やや満足 ' + good(h) + '%</div></div>'
+    + '<div class="kpi"><div class="l"><i style="background:#2563eb"></i>費用感満足度の平均</div><div class="v">' + (c.length ? avg(c).toFixed(1) : '—') + '<small>/ 5</small></div><div class="hint">満足・やや満足 ' + good(c) + '%</div></div>'
+    + '<div class="kpi"><div class="l"><i style="background:#f59e0b"></i>担当が決まっていない回答</div><div class="v">' + rows.filter(function (r) { return !r.ownerEmail; }).length + '<small>件</small></div></div></div>'
+    + '<div class="bar"><span class="hint">くらべる切り口</span><div class="seg">' + Object.keys(BY).map(function (k) { return '<button class="' + (k === st.by ? 'on' : '') + '" data-by="' + k + '">' + BY[k][0] + '別</button>'; }).join('') + '</div></div>'
+    + '<div class="legend">' + [5, 4, 3, 2, 1].map(function (k) { return '<span><i style="background:' + COLORS[k] + '"></i>' + LV[k] + '</span>'; }).join('') + '</div>'
+    + (rows.length ? tbl : '<div class="empty">まだ回答はありません</div>');
+  $('sFrom').onchange = function () { S.st.from = this.value; drawStats(); }; $('sTo').onchange = function () { S.st.to = this.value; drawStats(); };
+  [].forEach.call(document.querySelectorAll('[data-by]'), function (b) { b.onclick = function () { S.st.by = b.dataset.by; drawStats(); }; });
+}
+
+// ---------- 事例 ----------
+function drawCases() {
+  var cs = S.cs;
+  var rows = live().filter(function (r) { return r.satHankyo >= 4 && r.hankyo && (!cs.genre || r.genre === cs.genre) && (!cs.media || r.media === cs.media); })
+    .sort(function (a, b) { return b.satHankyo - a.satHankyo || (a.at < b.at ? 1 : -1); });
+  $('main').innerHTML = '<div class="bar"><span class="hint">反響が「満足」「やや満足」で、具体的な反響が書かれている回答です。営業トークや提案資料にどうぞ。</span><span class="sp"></span>'
+    + '<select id="cGenre">' + opts(S.masters.genres, cs.genre, 'ジャンル') + '</select><select id="cMedia">' + opts(S.masters.media, cs.media, '媒体') + '</select><span class="hint">' + rows.length + '件</span></div>'
+    + cardsHtml(rows, 'まだ事例になる回答はありません');
+  $('cGenre').onchange = function () { S.cs.genre = this.value; drawCases(); }; $('cMedia').onchange = function () { S.cs.media = this.value; drawCases(); };
+}
+
+// ---------- フォーム・設定 ----------
+function drawSettings() {
+  var m = S.masters, ad = S.me.isAdmin;
+  $('main').innerHTML = '<h2 class="sec" style="margin-top:0">クライアントに渡すフォーム</h2>'
+    + '<div class="bar formbox"><div id="qr"></div><div style="flex:1;min-width:240px"><div><b>アンケートのURL（全社共通）</b></div><div style="word-break:break-all"><a href="' + esc(S.formUrl) + '" target="_blank">' + esc(S.formUrl) + '</a></div>'
+    + '<div class="acts" style="margin-top:8px"><button class="btn sm" id="copyUrl">URLをコピー</button><button class="btn sm" id="dlQr">QRを画像で保存</button></div>'
+    + '<div class="hint" style="margin-top:6px">メール・LINE で送るか、QR を見せて答えてもらってください。届いた回答は「未割り当て」に出ます。</div></div></div>'
+    + (ad ? '<h2 class="sec">候補（管理者だけが直せます・1行に1つ）</h2><div class="cards">'
+      + [['genres', 'ジャンル'], ['media', '媒体'], ['sizes', '掲載サイズ・枠']].map(function (k) { return '<div class="rc"><b>' + k[1] + '</b><textarea id="m_' + k[0] + '" rows="8" style="width:100%;font:inherit;border:1px solid #ccc;border-radius:6px;padding:6px">' + esc((m[k[0]] || []).join('\n')) + '</textarea><div class="acts"><button class="btn sm" data-m="' + k[0] + '">保存する</button></div></div>'; }).join('')
+      + '</div>' + (S.sheetUrl ? '<p class="hint">データのスプレッドシート：<a href="' + esc(S.sheetUrl) + '" target="_blank">反響事例管理データ</a>（管理者の追加は admins シートに1行）</p>' : '') : '<p class="hint">ジャンル・媒体・サイズの候補を増やしたいときは管理者に頼んでください。</p>');
+  try { new QRCode($('qr'), { text: S.formUrl, width: 220, height: 220, correctLevel: QRCode.CorrectLevel.M }); } catch (x) { $('qr').textContent = 'QRを作れませんでした'; }
+  $('copyUrl').onclick = function () { (navigator.clipboard ? navigator.clipboard.writeText(S.formUrl) : Promise.reject()).then(function () { toast('URLをコピーしました'); }).catch(function () { prompt('コピーしてください', S.formUrl); }); };
+  $('dlQr').onclick = function () { var c = $('qr').querySelector('canvas'), img = $('qr').querySelector('img'); var src = c ? c.toDataURL('image/png') : img && img.src; if (!src) return; var a = document.createElement('a'); a.href = src; a.download = '反響アンケートQR.png'; a.click(); };
+  [].forEach.call(document.querySelectorAll('[data-m]'), function (b) { b.onclick = function () { var k = b.dataset.m; b.disabled = true; run('saveMaster', k, $('m_' + k).value.split('\n')).then(function (v) { S.masters[k] = v; b.disabled = false; toast('保存しました'); drawSettings(); }).catch(function (e) { b.disabled = false; toast(e.message); }); }; });
+}
+
+// ---------- 担当の情報 ----------
+function openEdit(id) {
+  var r = S.rows.find(function (x) { return x.id === id; }); if (!r) return;
+  S.editId = id;
+  $('dTitle').textContent = r.keisai;
+  $('dSub').textContent = r.at + ' の回答' + (r.ownerEmail ? '・担当 ' + r.ownerName : '・保存するとあなたが担当になります');
+  var sel = function (el, list, cur) { var l = list.slice(); if (cur && l.indexOf(cur) < 0) l.push(cur); el.innerHTML = '<option value="">（選ぶ）</option>' + l.map(function (v) { return '<option' + (v === cur ? ' selected' : '') + '>' + esc(v) + '</option>'; }).join(''); };
+  sel($('dGenre'), S.masters.genres, r.genre); sel($('dMedia'), S.masters.media, r.media); sel($('dSize'), S.masters.sizes, r.size);
+  $('dMonth').value = r.month || ''; $('dPrice').value = r.price === '' ? '' : r.price; $('dMemo').value = r.memo || '';
+  $('dMsg').textContent = ''; $('dMsg').className = 'msg'; $('dSave').disabled = false;
+  $('dlg').showModal();
+}
+$('dCancel').onclick = function () { $('dlg').close(); };
+$('dSave').onclick = function () {
+  var b = this; b.disabled = true; $('dMsg').textContent = '保存しています…'; $('dMsg').className = 'msg';
+  run('saveSales', S.editId, { genre: $('dGenre').value, month: $('dMonth').value, media: $('dMedia').value, size: $('dSize').value, price: $('dPrice').value, memo: $('dMemo').value })
+    .then(function (r) { upsert(r); $('dlg').close(); toast('保存しました'); draw(); })
+    .catch(function (e) { b.disabled = false; $('dMsg').textContent = e.message; $('dMsg').className = 'msg err'; });
+};
+</script>
+</body>
+</html>
