@@ -37,7 +37,7 @@ function submit_(d) {
   if (!lock.tryLock(15000)) throw new Error('混み合っています。少し待ってからもう一度送ってください');
   try {
     var sh = sheet_();
-    var id = 'R' + Utilities.formatDate(new Date(), TZ, 'yyMMddHHmmss') + Math.floor(Math.random() * 900 + 100);
+    var now = new Date(), id = 'R' + Utilities.formatDate(now, TZ, 'yyMMddHHmmss') + ('00' + now.getMilliseconds()).slice(-3) + Math.floor(Math.random() * 900000 + 100000); // 同じ秒に重なっても別のIDになるよう、ミリ秒＋乱数（2026-11-19）
     var at = Utilities.formatDate(new Date(), TZ, 'yyyy-MM-dd HH:mm');
     var vals = RESP_HEAD.map(function (k) {
       if (k === 'id') return id; if (k === 'at') return at;

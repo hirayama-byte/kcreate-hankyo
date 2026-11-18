@@ -19,7 +19,7 @@ var sh = t.sheet().getSheetByName('responses');
 ok(sh && sh.getLastRow() === 4, 'responses に3件（見出し＋3行）');
 ok(String(sh.data[2][2]).charAt(0) === "'", '式に見える掲載名は文字として入れる');
 ok(t.sheet().getSheetByName('シート1') == null, '最初の空シートは消える');
-ok(/^R\d{15}$/.test(String(sh.data[1][0])), 'IDの形: ' + sh.data[1][0]);
+ok(/^R\d{21}$/.test(String(sh.data[1][0])), 'IDの形: ' + sh.data[1][0]);
 
 // ---- 管理サイト ----
 var hira = t.as('hirayama@k-create.co.jp'), suda = t.as('suda@k-create.co.jp'), seko = t.as('seko@k-create.co.jp');
