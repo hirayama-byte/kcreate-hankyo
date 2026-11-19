@@ -11,7 +11,7 @@
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--text);font-family:"Noto Sans JP",system-ui,-apple-system,"Hiragino Sans","Yu Gothic UI",sans-serif;font-size:14px;line-height:1.6}
 .app{display:grid;grid-template-columns:240px 1fr;min-height:100vh}
-.side{background:var(--side);color:var(--side-text);display:flex;flex-direction:column;position:sticky;top:0;height:calc(100vh - 35px)}
+.side{background:var(--side);color:var(--side-text);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;scrollbar-width:none}.side::-webkit-scrollbar{display:none} /* 画面が低いときはメニュー全体をスクロール・バーは出さない（2026-11-19） */
 .brand{display:flex;align-items:center;gap:10px;padding:18px 18px 16px;border-bottom:1px solid var(--side-line)}
 .brand .logo{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,#34d399,#059669);display:grid;place-items:center}
 .brand b{display:block;color:var(--side-hi);font-size:14px;letter-spacing:.02em}
@@ -22,7 +22,7 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:"Noto Sans JP",
 #tabs button:hover{background:var(--side-2);color:var(--side-hi)}
 #tabs button.on{background:var(--side-2);color:#fff;box-shadow:inset 3px 0 0 var(--accent-2)}
 .side-sec{padding:14px 22px 6px;font-size:10.5px;letter-spacing:.14em;color:#64748b;font-family:var(--mono);text-transform:uppercase}
-#folders{padding:0 10px;overflow:auto;flex:1;min-height:0}
+#folders{padding:0 10px;flex:1 0 auto}
 #folders button{display:flex;width:100%;justify-content:space-between;align-items:center;border:0;background:none;color:var(--side-text);font:inherit;font-size:13px;padding:6px 12px;border-radius:6px;cursor:pointer;text-align:left}
 #folders button:hover{background:var(--side-2);color:var(--side-hi)}
 #folders button.on{background:var(--side-2);color:#fff;font-weight:500}
@@ -37,7 +37,13 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:"Noto Sans JP",
 .topbar{height:60px;background:var(--card);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px;padding:0 28px;position:sticky;top:0;z-index:5}
 .topbar h1{font-size:17px;margin:0}
 .topbar .crumb{color:var(--faint);font-size:12px}
-main{padding:24px 28px} /* PCでは右いっぱいまで（2026-11-19 オーナー指示） */
+main{padding:58px 28px 24px} /* PCでは右いっぱいまで・上は右上の「使い方ガイド」の場所（2026-11-19 オーナー指示） */
+.main{position:relative}
+/* 使い方ガイド: ほかのツールと同じ見た目・右上（中身は準備中） */
+a.guide-link{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--text);font-size:13px;font-weight:500;text-decoration:none;white-space:nowrap}a.guide-link:hover{border-color:#94a3b8}
+.gtop{position:absolute;top:14px;right:28px;z-index:6}
+/* 一覧（表）: PCでは画面の高さに収め、表の中だけスクロール＝項目名の行が上に残る（QR管理と同じ・2026-11-19） */
+@media (min-width:901px){body.fit .main{height:100vh;display:flex;flex-direction:column}body.fit main{flex:1;min-height:0;display:flex;flex-direction:column}body.fit main>.bar{flex:none}body.fit main>.tw{flex:0 1 auto;min-height:0}}
 input,select,.btn{font:inherit;font-size:13.5px;height:36px;padding:0 12px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--text)}
 input[type=checkbox]{height:auto}
 input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent-2);box-shadow:0 0 0 3px rgba(59,130,246,.15)}
@@ -131,23 +137,26 @@ dialog::backdrop{background:rgba(15,23,42,.45)}
 .seg2 button{border:0;border-right:1px solid var(--line);background:#fff;font:inherit;font-size:12.5px;padding:0 12px;height:34px;cursor:pointer;color:var(--muted);display:inline-flex;align-items:center;gap:5px}
 .seg2 button:last-child{border-right:0}.seg2 button.on{background:var(--accent-weak);color:var(--accent);font-weight:500}
 .seg2 svg{width:14px;height:14px}
-.tw{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);overflow:auto}
-table.lt{width:100%;border-collapse:collapse;min-width:980px}
-table.lt th{font-size:11px;color:var(--muted);font-weight:500;letter-spacing:.06em;white-space:nowrap;background:#f8fafc;border-bottom:1px solid var(--line);text-align:left;padding:10px 8px;position:sticky;top:0;z-index:1}
-table.lt td{padding:8px 8px;border-bottom:1px solid var(--line-2);font-size:13px;vertical-align:middle;white-space:nowrap}
+.tw{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);overflow:auto;width:fit-content;max-width:100%}
+table.lt{border-collapse:collapse}
+table.lt th{font-size:11px;color:var(--muted);font-weight:500;letter-spacing:.06em;white-space:nowrap;background:#f8fafc;border-bottom:1px solid var(--line);text-align:left;padding:9px 6px;position:sticky;top:0;z-index:1}
+table.lt td{padding:6px 6px;border-bottom:1px solid var(--line-2);font-size:13px;vertical-align:middle;white-space:nowrap}
 select.inl{font:inherit;font-size:12.5px;height:30px;border:1px solid var(--line);border-radius:6px;background:#fff;padding:0 4px;max-width:128px;cursor:pointer;color:var(--text)}select.inl:hover{border-color:var(--accent)}select.inl.none{color:var(--faint)}select.inl:disabled{opacity:.5}
 .dt table.ed td{padding:5px 10px}.dt table.ed select.inl{max-width:260px;height:34px;font-size:13.5px}input.inl{font:inherit;font-size:13.5px;height:34px;border:1px solid var(--line);border-radius:6px;padding:0 10px}
 textarea.inl.memo{display:block;width:100%;box-sizing:border-box;min-height:84px;font:inherit;font-size:14px;line-height:1.7;border:1px solid var(--line);border-radius:8px;padding:10px 14px;resize:vertical}
 table.lt tr.r{cursor:pointer}table.lt tr.r:hover td{background:#f8fafc}table.lt tr.del td{opacity:.55}
+table.lt th:first-child,table.lt td:first-child{padding-left:12px}table.lt th:last-child,table.lt td:last-child{padding-right:12px}
+/* 担当は5文字分（長い名前は見切れる・2026-11-19） */
+table.lt select.inl.own{width:6.8em}table.lt td.own .nm3{display:inline-block;max-width:5em;overflow:hidden;text-overflow:ellipsis;vertical-align:middle}
 table.lt td.nm2{font-weight:500;max-width:200px;overflow:hidden;text-overflow:ellipsis}
-table.lt td.tx{max-width:360px;overflow:hidden;text-overflow:ellipsis;color:#334155}
+table.lt td.tx{max-width:280px;overflow:hidden;text-overflow:ellipsis;color:#334155}
 table.lt td.num{text-align:right;font-family:var(--mono)}
 table.lt td.dt2{font-family:var(--mono);font-size:12px;color:var(--muted)}
 table.lt .via{font-size:10.5px;color:#15803d;background:#dcfce7;border-radius:4px;padding:0 5px;margin-left:4px}
 .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#0f172a;color:#fff;border-radius:8px;padding:9px 16px;font-size:13px;display:none;z-index:20}
 .loading{padding:40px;text-align:center;color:var(--faint)}
 a{color:var(--accent)}
-@media (max-width:900px){.side-sec,#folders{display:none}.app{grid-template-columns:1fr}.side{position:static;height:auto}.brand{padding:12px 16px}#tabs{flex-direction:row;flex-wrap:wrap;padding:8px}#tabs button{width:auto;padding:7px 10px}.side .sp,.me{display:none}.topbar{padding:0 16px;height:52px}main{padding:16px}.cards{grid-template-columns:1fr}.row2{grid-template-columns:1fr}}
+@media (max-width:900px){.side{overflow:visible}main{padding-top:56px !important}.side-sec,#folders{display:none}.app{grid-template-columns:1fr}.side{position:static;height:auto}.brand{padding:12px 16px}#tabs{flex-direction:row;flex-wrap:wrap;padding:8px}#tabs button{width:auto;padding:7px 10px}.side .sp,.me{display:none}.topbar{padding:0 16px;height:52px}main{padding:16px}.cards{grid-template-columns:1fr}.row2{grid-template-columns:1fr}}
   .tools { border-top: 1px solid var(--side-line); padding: 8px 10px 6px; }
   .tools .tools-h { padding: 6px 12px 4px; font-size: 10.5px; letter-spacing: .14em; color: #64748b; font-family: var(--mono); text-transform: uppercase; }
   .tools a { display: flex; align-items: center; gap: 10px; color: var(--side-text); text-decoration: none; font-size: 13px; padding: 7px 12px; border-radius: 8px; }
@@ -174,7 +183,7 @@ a{color:var(--accent)}
   <div class="me"><span class="avatar" id="meAv">?</span><div><span id="me"></span><small id="meRole"></small></div></div>
 </aside>
 <div class="main">
-<header class="topbar"><h1 id="pageTitle">一覧</h1><span class="crumb" id="crumb"></span></header>
+<a class="guide-link gtop" id="guideBtn" href="#" title="使い方ガイド（準備中）"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20M4 4.5A2.5 2.5 0 0 1 6.5 2H20v15H6.5A2.5 2.5 0 0 0 4 19.5z"/></svg>使い方ガイド</a>
 <main id="main"><div class="loading">読み込んでいます…</div></main>
 </div></div>
 <dialog id="dlg"><div class="dlg">
@@ -480,10 +489,7 @@ function folderName() { var f = S.f.folder; if (f === 'all') return '全体'; if
 function draw() {
   drawFolders();
   [].forEach.call(document.querySelectorAll('#tabs button'), function (b) { b.classList.toggle('on', b.dataset.t === S.tab); });
-  if (S.detailId) { $('pageTitle').textContent = '回答の詳細'; $('crumb').textContent = ''; } else {
-  $('pageTitle').textContent = { todo: '未割り当て', list: S.f.folder === 'mine' ? '自分の案件' : '回答一覧', stats: '分析', cases: '事例', settings: 'フォーム・設定' }[S.tab];
-  $('crumb').textContent = { todo: '/ 担当が決まっていない回答', list: S.f.folder === 'mine' ? '/ 自分が担当の回答' : '/ ' + folderName(), stats: '/ 満足度の平均と内訳', cases: '/ 反響が良かった回答', settings: '/ アンケートのURL・QR（共通・自分専用）' }[S.tab];
-  }
+  document.body.classList.toggle('fit', !S.detailId && S.tab === 'list' && S.view === 'table'); // 一覧（表）は表の中だけスクロール
   var n = live().filter(function (r) { return !r.ownerEmail; }).length;
   $('nTodo').style.display = n ? '' : 'none'; $('nTodo').textContent = n;
   if (S.detailId) return drawDetail();
@@ -555,7 +561,7 @@ function tableHtml(rows) {
     + rows.map(function (r) {
       return '<tr class="r' + (r.deleted ? ' del' : '') + '" data-open="' + r.id + '"><td class="dt2" title="' + esc(r.at) + '">' + esc(String(r.at).slice(5, 10).replace(/^0?(\d+)-0?(\d+)$/, '$1/$2')) + '</td><td class="nm2" title="' + esc(r.keisai) + '">' + esc(r.keisai) + '</td><td>' + sp(r.satHankyo) + '</td><td>' + sp(r.satCost) + '</td>'
         + '<td class="tx" title="' + esc(r.hankyo) + '">' + (r.hankyo ? esc(r.hankyo) : '<span class="hint">—</span>') + '</td>'
-        + '<td>' + ownerSel(r) + (r.via ? '<span class="via" title="担当者専用フォームから">専用</span>' : '') + '</td>'
+        + '<td class="own">' + ownerSel(r) + (r.via ? '<span class="via" title="担当者専用フォームから">専用</span>' : '') + '</td>'
         + '<td>' + fieldSel(r, 'genre') + '</td><td>' + fieldSel(r, 'month') + '</td><td>' + fieldSel(r, 'media') + '</td><td>' + fieldSel(r, 'size') + '</td><td class="num">' + (r.price === '' ? '' : Number(r.price).toLocaleString('ja-JP')) + '</td></tr>';
     }).join('') + '</tbody></table></div>';
 }
@@ -573,7 +579,7 @@ function fieldSel(r, k) {
 // 担当のプルダウン: 本人・管理者は名簿の誰にでも（「担当なし」に戻すのもここ）。担当なしの回答は、管理者は誰でも・ほかの人は自分だけ
 function ownerSel(r) {
   var mine = r.ownerEmail === S.me.email;
-  if (r.deleted || (r.ownerEmail && !mine && !S.me.isAdmin)) return r.ownerName ? esc(r.ownerName) : '<span class="chip none">担当なし</span>';
+  if (r.deleted || (r.ownerEmail && !mine && !S.me.isAdmin)) return r.ownerName ? '<span class="nm3" title="' + esc(r.ownerName) + '">' + esc(r.ownerName) + '</span>' : '<span class="chip none">担当なし</span>';
   var ppl = (S.me.isAdmin || mine) ? S.people.slice() : S.people.filter(function (p) { return p.email === S.me.email; });
   if (!ppl.some(function (p) { return p.email === S.me.email; })) ppl.unshift({ email: S.me.email, name: S.me.name });
   if (r.ownerEmail && !ppl.some(function (p) { return p.email === r.ownerEmail; })) ppl.unshift({ email: r.ownerEmail, name: r.ownerName });
@@ -584,14 +590,12 @@ var KNAME = { owner: '担当', genre: 'ジャンル', month: '掲載号', media:
 document.getElementById('main').addEventListener('change', function (e) {
   var el = e.target.closest('.inl'); if (!el) return;
   var id = el.dataset.id, k = el.dataset.k, r = S.rows.find(function (x) { return x.id === id; }); if (!r) return;
-  var v = el.value, had = !!r.ownerEmail;
+  var v = el.value;
   var p = k === 'owner' ? (v ? run('assign', id, v) : run('release', id)) : run('saveField', id, k, v);
   el.disabled = true;
   p.then(function (nr) {
-    upsert(nr);
-    var label = k === 'owner' ? (nr.ownerName || '担当なし') : (fieldText(nr, k) || '空');
-    toast((k === 'memo' ? '社内メモを保存しました' : KNAME[k] + 'を「' + label + '」にしました') + (k !== 'owner' && !had && nr.ownerEmail ? '（あなたの担当になりました）' : ''));
-    if (S.detailId) { var y = window.scrollY; draw(); window.scrollTo(0, y); } else { var tw = document.querySelector('.tw'), sl = tw ? tw.scrollLeft : 0, y2 = window.scrollY; draw(); var tw2 = document.querySelector('.tw'); if (tw2) tw2.scrollLeft = sl; window.scrollTo(0, y2); }
+    upsert(nr); // 保存できたときのお知らせは出さない（2026-11-19 オーナー指示。失敗したときだけ出す）
+    if (S.detailId) { var y = window.scrollY; draw(); window.scrollTo(0, y); } else { var tw = document.querySelector('.tw'), sl = tw ? tw.scrollLeft : 0, st = tw ? tw.scrollTop : 0, y2 = window.scrollY; draw(); var tw2 = document.querySelector('.tw'); if (tw2) { tw2.scrollLeft = sl; tw2.scrollTop = st; } window.scrollTo(0, y2); }
   }).catch(function (err) { el.disabled = false; el.value = k === 'owner' ? (r.ownerEmail || '') : (r[k] == null ? '' : r[k]); toast(err.message); });
 });
 function cardsHtml(rows, emptyText) { if (!rows.length) return '<div class="empty">' + emptyText + '</div>'; return S.view === 'table' ? tableHtml(rows) : '<div class="cards">' + rows.map(card).join('') + '</div>'; }
@@ -754,6 +758,9 @@ $('dSave').onclick = function () {
     .then(function (r) { upsert(r); $('dlg').close(); toast('保存しました'); draw(); })
     .catch(function (e) { b.disabled = false; $('dMsg').textContent = e.message; $('dMsg').className = 'msg err'; });
 };
+// 使い方ガイド: 中身ができたら GUIDE_URL に入れる（2026-11-19 ボタンだけ先に）
+var GUIDE_URL = '';
+$('guideBtn').onclick = function (e) { if (GUIDE_URL) { this.href = GUIDE_URL; this.target = '_blank'; return; } e.preventDefault(); toast('使い方ガイドは準備中です'); };
 </script>
 </body>
 </html>

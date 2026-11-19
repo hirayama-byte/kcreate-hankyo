@@ -14,7 +14,7 @@ var pw = require(process.env.PW), OUT = (process.env.OUT || require("path").join
   var opts = await sel.$$eval('option', function (o) { return o.map(function (x) { return x.value; }).filter(String); });
   await sel.selectOption(opts[1]); await p.waitForTimeout(800);
   console.log('ジャンルを変えた', await p.$eval('select.inl[data-k="genre"][data-id="' + id + '"]', function (e) { return e.value; }) === opts[1], 'トースト:', await p.$eval('#toast', function (e) { return e.textContent; }));
-  console.log('詳細は開いていない', await p.$eval('#pageTitle', function (e) { return e.textContent; }));
+  console.log('詳細は開いていない', !(await p.$('.dt')));
   // 掲載号
   var ms = await p.$('select.inl[data-k="month"][data-id="' + id + '"]'); var mo = await ms.$$eval('option', function (o) { return o.map(function (x) { return x.value; }).filter(String); });
   await ms.selectOption(mo[3]); await p.waitForTimeout(800);
@@ -25,7 +25,7 @@ var pw = require(process.env.PW), OUT = (process.env.OUT || require("path").join
   await p.click('#viewSeg button[data-view="table"]'); await p.waitForTimeout(300);
   // 行を押すと詳細
   await p.click('tr.r[data-open="' + id + '"] td.nm2'); await p.waitForTimeout(400);
-  console.log('詳細', await p.$eval('#pageTitle', function (e) { return e.textContent; }));
+  console.log('詳細', !!(await p.$('.dt')));
   var btns = await p.$$eval('.dt .acts button', function (b) { return b.map(function (x) { return x.textContent; }); });
   console.log('詳細のボタン', btns);
   await p.fill('.dt input.inl[data-k="price"]', '45000'); await p.press('.dt input.inl[data-k="price"]', 'Tab'); await p.waitForTimeout(800);
