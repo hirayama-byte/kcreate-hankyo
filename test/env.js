@@ -25,6 +25,7 @@ function make(opts) {
   return {
     store: store,
     sheet: function () { return store[SHEET_ID]; },
+    post: function (req) { return JSON.parse(api.doPost({ postData: { contents: JSON.stringify(req) } }).body); },
     submit: function (data) { var r = api.doPost({ postData: { contents: JSON.stringify({ action: 'submit', data: data }) } }); return JSON.parse(r.body); },
     as: function (email) { return admins[email] || (admins[email] = load('gas-admin', email)); }
   };

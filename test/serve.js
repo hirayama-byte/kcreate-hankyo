@@ -14,7 +14,7 @@ http.createServer(function (req, res) {
   var body = ''; req.on('data', function (c) { body += c; });
   req.on('end', function () {
     try {
-      if (u.pathname === '/api' && req.method === 'POST') { res.writeHead(200, { 'Content-Type': 'application/json' }); var r = t.submit(JSON.parse(body).data); return res.end(JSON.stringify(r)); }
+      if (u.pathname === '/api' && req.method === 'POST') { res.writeHead(200, { 'Content-Type': 'application/json' }); var r = t.post(JSON.parse(body)); return res.end(JSON.stringify(r)); }
       if (u.pathname.indexOf('/rpc/') === 0) {
         var fn = u.pathname.slice(5), who = u.searchParams.get('as') || 'hirayama@k-create.co.jp', ctx = t.as(who), out;
         try { out = { result: JSON.parse(JSON.stringify(ctx[fn].apply(null, JSON.parse(body || '[]')))) }; } catch (e) { out = { error: e.message }; }

@@ -105,12 +105,20 @@ footer{text-align:center;font-size:12px;color:var(--sub);margin-top:28px}
     box.innerHTML = LEVELS.map(function (l) { return '<label><input type="radio" name="' + name + '" value="' + l[0] + '"><span>' + l[1] + '</span></label>'; }).join('');
   });
   var f = document.getElementById('f'), btn = document.getElementById('send'), msg = document.getElementById('msg');
+  // 担当者専用フォーム（?t=印・2026-11-19）: 担当者が決めた参考文に差し替える。読めなければ共通の参考文のまま
+  var T = (/[?&]t=([a-z0-9]{6,16})/.exec(location.search) || [])[1] || '';
+  if (T && window.API_URL && window.API_URL !== 'sample') {
+    fetch(window.API_URL, { method: 'POST', body: JSON.stringify({ action: 'form', t: T }) }).then(function (r) { return r.json(); }).then(function (r) {
+      if (!r || !r.ok || !r.ph) return;
+      ['hankyo', 'riyu', 'youbou'].forEach(function (k) { if (r.ph[k]) document.getElementById(k).placeholder = r.ph[k]; });
+    }).catch(function () {});
+  }
   function val(n) { var e = f.elements[n]; if (!e) return ''; if (e.length && e[0] && e[0].type === 'radio') { var c = [].filter.call(e, function (x) { return x.checked; })[0]; return c ? c.value : ''; } return e.value.trim(); }
   f.addEventListener('change', function (e) { var q = e.target.closest('.q'); if (q) q.classList.remove('bad'); });
   f.addEventListener('input', function (e) { msg.textContent = ''; var q = e.target.closest('.q'); if (q) q.classList.remove('bad'); });
   f.addEventListener('submit', function (e) {
     e.preventDefault(); msg.textContent = '';
-    var data = { keisai: val('keisai'), sat_hankyo: val('sat_hankyo'), hankyo: val('hankyo'), sat_cost: val('sat_cost'), riyu: val('riyu'), youbou: val('youbou'), website: val('website') };
+    var data = { keisai: val('keisai'), sat_hankyo: val('sat_hankyo'), hankyo: val('hankyo'), sat_cost: val('sat_cost'), riyu: val('riyu'), youbou: val('youbou'), website: val('website'), t: T };
     var bad = null;
     ['keisai', 'sat_hankyo', 'sat_cost'].forEach(function (k) { var q = f.querySelector('.q[data-k="' + k + '"]'); var ng = !data[k]; q.classList.toggle('bad', ng); if (ng && !bad) bad = q; });
     if (bad) { bad.scrollIntoView({ behavior: 'smooth', block: 'center' }); msg.textContent = '入力されていない項目があります'; return; }

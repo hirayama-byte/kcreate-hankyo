@@ -8,7 +8,12 @@ var QR_SHEET_ID = '1riYm2WOMEeZBq0Te6BsqBumQFvPji9oYuZa8c6_So0o'; // 名前はQR
 var ADMIN_EMAIL = 'hirayama@k-create.co.jp';
 // responses シートの列（gas-api と同じ並び）
 var RESP_HEAD = ['id', 'at', 'keisai', 'sat_hankyo', 'hankyo', 'sat_cost', 'riyu', 'youbou',
-  'owner_email', 'owner_name', 'claimed_at', 'genre', 'month', 'media', 'size', 'price', 'memo', 'updated', 'deleted', 'deleted_by'];
+  'owner_email', 'owner_name', 'claimed_at', 'genre', 'month', 'media', 'size', 'price', 'memo', 'updated', 'deleted', 'deleted_by', 'via'];
+// via（21列目・2026-11-19〜）= 担当者専用フォームから来た回答の印（gas-api と同じ）
+// 担当者専用フォーム（2026-11-19〜）: 1人1つ。URL は FORM_URL?t=<token>。参考文（②④⑤のグレーの例文）を人ごとに変えられる
+var FORMS_HEAD = ['token', 'email', 'name', 'ph_hankyo', 'ph_riyu', 'ph_youbou', 'created', 'updated'];
+var DEFAULT_PH = { hankyo: '10件の応募があった・5件の新規獲得ができた・売上が上がった・来店が増えたなど', riyu: '費用対効果満足度が得られた・反響はあったが費用的には高く感じたなど', youbou: '次回も掲載したい・エリアを広げていきたい・HPやAIについても相談したいなど' };
+var TOKEN_CHARS = 'abcdefghjkmnpqrstuvwxyz23456789';
 var MASTERS = {
   genres: ['グルメ', 'スクール', 'ショップ', '暮らし', 'トータルケア', 'クリニック', '介護・福祉', '終活・士業', '企業', 'その他'],
   media: ['一宮', '江南', '岩倉', '清須', '津島', '西北'],
@@ -34,8 +39,9 @@ function respSheet_() {
   var sh = ss_().getSheetByName('responses');
   if (!sh) {
     sh = ensureSheet_('responses', RESP_HEAD);
-    sh.getRange('A:C').setNumberFormat('@'); sh.getRange('E:E').setNumberFormat('@'); sh.getRange('G:T').setNumberFormat('@');
+    sh.getRange('A:C').setNumberFormat('@'); sh.getRange('E:E').setNumberFormat('@'); sh.getRange('G:U').setNumberFormat('@');
   }
+  if (String(sh.getRange(1, RESP_HEAD.length).getValue()) !== 'via') sh.getRange(1, RESP_HEAD.length).setValue('via'); // 後から足した列の見出し
   return sh;
 }
 function setup_() {
@@ -77,7 +83,7 @@ function rowObj_(r) {
     ownerEmail: str_(o.owner_email).toLowerCase(), ownerName: str_(o.owner_name), claimedAt: str_(o.claimed_at),
     genre: str_(o.genre), month: month_(o.month), media: str_(o.media), size: str_(o.size),
     price: o.price === '' || o.price == null ? '' : Number(String(o.price).replace(/[^\d.]/g, '')) || 0, memo: str_(o.memo),
-    updated: str_(o.updated), deleted: str_(o.deleted), deletedBy: str_(o.deleted_by)
+    updated: str_(o.updated), deleted: str_(o.deleted), deletedBy: str_(o.deleted_by), via: str_(o.via)
   };
 }
 function allRows_() {
@@ -111,6 +117,9 @@ function init() {
     me: { email: me, name: nameOf_(me), isAdmin: admin },
     masters: { genres: col_('genres'), media: col_('media'), sizes: col_('sizes') },
     formUrl: setting_('form_url') || FORM_URL,
+    myForm: myForm_(me),
+    defaultPh: DEFAULT_PH,
+    people: people_(),
     sheetUrl: admin ? ss_().getUrl() : '',
     rows: rows
   };
@@ -128,6 +137,50 @@ function claim(id, toEmail) {
     else if (f.obj.ownerEmail && f.obj.ownerEmail !== me) throw new Error('すでに ' + f.obj.ownerName + ' さんの担当です');
     setCols_(f, { owner_email: who, owner_name: nameOf_(who), claimed_at: now_(), updated: now_() });
     return rowObj_(f.sh.getRange(f.row, 1, 1, RESP_HEAD.length).getValues()[0]);
+  });
+}
+// 担当を付け替える（QR管理と同じ・担当本人と管理者）。相手は社内の名簿にいる人だけ
+function assign(id, toEmail) {
+  var me = myEmail_(), to = String(toEmail || '').trim().toLowerCase();
+  if (!to || !names_()[to]) throw new Error('担当にする人を選んでください（社内の名簿にいる人だけ）');
+  return withLock_(function () {
+    var f = findRow_(id);
+    if (f.obj.deleted) throw new Error('削除された回答です');
+    if (f.obj.ownerEmail && !canEdit_(f.obj, me)) throw new Error('担当の ' + f.obj.ownerName + ' さんか管理者だけが付け替えられます');
+    if (!f.obj.ownerEmail && to !== me && !isAdmin_(me)) throw new Error('担当がいない回答をほかの人に付けられるのは管理者だけです');
+    setCols_(f, { owner_email: to, owner_name: nameOf_(to), claimed_at: now_(), updated: now_() });
+    return rowObj_(f.sh.getRange(f.row, 1, 1, RESP_HEAD.length).getValues()[0]);
+  });
+}
+// 名簿（担当の付け替えで選ぶ人）
+function people_() { var m = names_(); return Object.keys(m).map(function (e) { return { email: e, name: m[e] }; }).sort(function (a, b) { return a.name < b.name ? -1 : 1; }); }
+// ---------- 担当者専用フォーム ----------
+function formsSheet_() { var sh = ensureSheet_('forms', FORMS_HEAD); return sh; }
+function myForm_(email) {
+  var sh = formsSheet_(), n = sh.getLastRow(), v = n > 1 ? sh.getRange(2, 1, n - 1, FORMS_HEAD.length).getValues() : [];
+  for (var i = 0; i < v.length; i++) if (String(v[i][1]).toLowerCase() === email) return { token: String(v[i][0]), url: (setting_('form_url') || FORM_URL) + '?t=' + v[i][0], ph: { hankyo: String(v[i][3] || ''), riyu: String(v[i][4] || ''), youbou: String(v[i][5] || '') } };
+  return null;
+}
+// 自分専用フォームを作る（まだなければ）
+function createMyForm() {
+  var me = myEmail_(); if (!me) throw new Error('会社のGoogleアカウントで開いてください');
+  return withLock_(function () {
+    var cur = myForm_(me); if (cur) return cur;
+    var sh = formsSheet_(), used = {}; if (sh.getLastRow() > 1) sh.getRange(2, 1, sh.getLastRow() - 1, 1).getValues().forEach(function (r) { used[String(r[0])] = 1; });
+    var t; do { t = ''; for (var i = 0; i < 8; i++) t += TOKEN_CHARS.charAt(Math.floor(Math.random() * TOKEN_CHARS.length)); } while (used[t]);
+    var r = sh.getLastRow() + 1; sh.getRange(r, 1, 1, FORMS_HEAD.length).setNumberFormat('@').setValues([[t, me, nameOf_(me), '', '', '', now_(), now_()]]);
+    return myForm_(me);
+  });
+}
+// 自分専用フォームの参考文を変える（空にすると共通の参考文）
+function saveMyForm(ph) {
+  var me = myEmail_(); ph = ph || {};
+  var c = function (v) { var x = String(v == null ? '' : v).replace(/\r?\n/g, ' ').trim().slice(0, 200); return /^[=+\-@]/.test(x) ? "'" + x : x; };
+  return withLock_(function () {
+    if (!myForm_(me)) throw new Error('先に自分専用フォームを作ってください');
+    var sh = formsSheet_(), v = sh.getRange(2, 1, sh.getLastRow() - 1, 2).getValues();
+    for (var i = 0; i < v.length; i++) if (String(v[i][1]).toLowerCase() === me) { sh.getRange(i + 2, 3, 1, 4).setValues([[nameOf_(me), c(ph.hankyo), c(ph.riyu), c(ph.youbou)]]); sh.getRange(i + 2, 8).setValue(now_()); break; }
+    return myForm_(me);
   });
 }
 // 担当をはずす（本人か管理者）

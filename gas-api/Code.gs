@@ -6,7 +6,10 @@ var TZ = 'Asia/Tokyo';
 var VERSION = '1';
 // responses シートの列（gas-admin と同じ並び。変えるときは両方）
 var RESP_HEAD = ['id', 'at', 'keisai', 'sat_hankyo', 'hankyo', 'sat_cost', 'riyu', 'youbou',
-  'owner_email', 'owner_name', 'claimed_at', 'genre', 'month', 'media', 'size', 'price', 'memo', 'updated', 'deleted', 'deleted_by'];
+  'owner_email', 'owner_name', 'claimed_at', 'genre', 'month', 'media', 'size', 'price', 'memo', 'updated', 'deleted', 'deleted_by', 'via'];
+// via（21列目・2026-11-19〜）= 担当者専用フォームから来た回答ならそのフォームの印（token）。共通フォームは空
+// forms シート（担当者専用フォーム・gas-admin が作る）: token, email, name, ph_hankyo, ph_riyu, ph_youbou, created, updated
+var TOKEN_RE = /^[a-z0-9]{6,16}$/;
 var MAX = { keisai: 100, hankyo: 1000, riyu: 1000, youbou: 1000 };
 
 function doGet() { return json_({ ok: true, version: VERSION }); }
@@ -15,6 +18,7 @@ function doPost(e) {
   try { req = JSON.parse((e && e.postData && e.postData.contents) || '{}'); } catch (x) { return json_({ error: '送信の形が正しくありません' }); }
   try {
     if (String(req.action || '') === 'submit') return json_(submit_(req.data || {}));
+    if (String(req.action || '') === 'form') { var f = form_(req.t); return json_(f ? { ok: true, ph: f.ph } : { ok: false }); }
     return json_({ error: '不明な操作です' });
   } catch (x) { console.error(x); return json_({ error: String(x && x.message || x) }); }
 }
@@ -25,6 +29,16 @@ function clean_(v, n) { return String(v == null ? '' : v).replace(/\r\n?/g, '\n'
 function safe_(s) { return /^[=+\-@]/.test(s) ? "'" + s : s; }
 function sat_(v) { var n = Number(v); if (!(n >= 1 && n <= 5 && Math.floor(n) === n)) throw new Error('満足度を選んでください'); return n; }
 
+// 担当者専用フォームの設定（参考文）。担当者の名前・メールはクライアントに見せない
+function form_(t) {
+  t = String(t || '').trim().toLowerCase();
+  if (!TOKEN_RE.test(t)) return null;
+  var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('forms');
+  if (!sh || sh.getLastRow() < 2) return null;
+  var v = sh.getRange(2, 1, sh.getLastRow() - 1, 6).getValues();
+  for (var i = 0; i < v.length; i++) if (String(v[i][0]) === t && v[i][1]) return { token: t, email: String(v[i][1]).toLowerCase(), name: String(v[i][2] || ''), ph: { hankyo: String(v[i][3] || ''), riyu: String(v[i][4] || ''), youbou: String(v[i][5] || '') } };
+  return null;
+}
 function submit_(d) {
   if (clean_(d.website, 100)) return { ok: true }; // ロボット用のわな（人には見えない欄）。入っていたら黙って捨てる
   var keisai = clean_(d.keisai, MAX.keisai);
@@ -33,6 +47,9 @@ function submit_(d) {
     keisai: keisai, sat_hankyo: sat_(d.sat_hankyo), hankyo: clean_(d.hankyo, MAX.hankyo),
     sat_cost: sat_(d.sat_cost), riyu: clean_(d.riyu, MAX.riyu), youbou: clean_(d.youbou, MAX.youbou)
   };
+  // 担当者専用フォームから来たら、最初からその人の担当にする（印がおかしい・消えたフォームなら共通フォームと同じ扱い）
+  var f = form_(d.t);
+  if (f) { row.owner_email = f.email; row.owner_name = f.name; row.via = f.token; }
   var lock = LockService.getScriptLock();
   if (!lock.tryLock(15000)) throw new Error('混み合っています。少し待ってからもう一度送ってください');
   try {
@@ -40,7 +57,7 @@ function submit_(d) {
     var now = new Date(), id = 'R' + Utilities.formatDate(now, TZ, 'yyMMddHHmmss') + ('00' + now.getMilliseconds()).slice(-3) + Math.floor(Math.random() * 900000 + 100000); // 同じ秒に重なっても別のIDになるよう、ミリ秒＋乱数（2026-11-19）
     var at = Utilities.formatDate(new Date(), TZ, 'yyyy-MM-dd HH:mm');
     var vals = RESP_HEAD.map(function (k) {
-      if (k === 'id') return id; if (k === 'at') return at;
+      if (k === 'id') return id; if (k === 'at') return at; if (k === 'claimed_at' && row.owner_email) return at;
       return row[k] == null ? '' : (typeof row[k] === 'string' ? safe_(row[k]) : row[k]);
     });
     // 日時や数字を勝手に変換させない（シートのタイムゾーンに左右されないよう、文字の書式を先に付けてから書く）
@@ -61,5 +78,6 @@ function sheet_() {
     sh.setFrozenRows(1);
     var def = ss.getSheetByName('シート1') || ss.getSheetByName('Sheet1'); if (def && ss.getSheets().length > 1) ss.deleteSheet(def);
   }
+  if (String(sh.getRange(1, RESP_HEAD.length).getValue()) !== RESP_HEAD[RESP_HEAD.length - 1]) sh.getRange(1, RESP_HEAD.length).setValue(RESP_HEAD[RESP_HEAD.length - 1]); // 後から足した列の見出し
   return sh;
 }

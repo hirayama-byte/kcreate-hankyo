@@ -58,5 +58,32 @@ ok(hira.saveMaster('media', ['一宮', '江南', '一宮', '稲沢', ' ']).join(
 ok(suda.init().masters.media.join() === '一宮,江南,稲沢', '直した候補がみんなに出る');
 throws(function () { suda.claim('xxx'); }, /ID/, 'おかしなIDは断る');
 
+// ---- 担当者専用フォーム・担当の付け替え（2026-11-19） ----
+var d0 = suda.init();
+ok(d0.myForm === null && d0.people.length === 3 && d0.defaultPh.hankyo.indexOf('10件の応募') === 0, '最初は専用フォームなし・名簿と既定の参考文');
+var mf = suda.createMyForm();
+ok(/^[a-z0-9]{8}$/.test(mf.token) && mf.url.indexOf('?t=' + mf.token) > 0, '専用フォームを作る: ' + mf.url);
+ok(suda.createMyForm().token === mf.token, '2回押しても同じフォーム');
+ok(seko.createMyForm().token !== mf.token, '人ごとに別のフォーム');
+var cfg = t.post({ action: 'form', t: mf.token });
+ok(cfg.ok && cfg.ph.hankyo === '' && !cfg.email && JSON.stringify(cfg).indexOf('suda') < 0, 'フォームの設定（参考文）を返す・担当者のメールは出さない');
+ok(t.post({ action: 'form', t: 'nosuchtk' }).ok === false, 'ない印は ok:false');
+var sv = suda.saveMyForm({ hankyo: '問い合わせ件数・予約数など', riyu: '', youbou: '=式' });
+ok(sv.ph.hankyo === '問い合わせ件数・予約数など' && t.post({ action: 'form', t: mf.token }).ph.hankyo === '問い合わせ件数・予約数など', '参考文を変えるとフォームに出る');
+var n0 = t.sheet().getSheetByName('responses').getLastRow();
+ok(t.submit({ keisai: '専用フォームの店', sat_hankyo: 4, sat_cost: 4, t: mf.token }).ok, '専用フォームから送信');
+ok(t.submit({ keisai: '印がおかしい店', sat_hankyo: 3, sat_cost: 3, t: 'zzzzzzzz' }).ok, '印がおかしくても送れる');
+var rows2 = suda.listRows(), via = rows2.filter(function (r) { return r.keisai === '専用フォームの店'; })[0], bad2 = rows2.filter(function (r) { return r.keisai === '印がおかしい店'; })[0];
+ok(via.ownerEmail === 'suda@k-create.co.jp' && via.ownerName === '須田 諒治' && via.claimedAt && via.via === mf.token, '専用フォームの回答は最初から担当つき');
+ok(bad2.ownerEmail === '' && bad2.via === '', '印がおかしい回答は担当なし（共通フォームと同じ）');
+ok(String(t.sheet().getSheetByName('responses').data[0][20]) === 'via', 'via の列の見出し');
+var asg = suda.assign(via.id, 'seko@k-create.co.jp');
+ok(asg.ownerEmail === 'seko@k-create.co.jp' && asg.ownerName === '瀬古 典子', '担当本人がほかの人に付け替え');
+throws(function () { suda.assign(via.id, 'suda@k-create.co.jp'); }, /瀬古/, 'もう担当でない人は付け替えられない');
+throws(function () { seko.assign(via.id, 'nobody@k-create.co.jp'); }, /名簿/, '名簿にいない人には付けられない');
+ok(hira.assign(via.id, 'suda@k-create.co.jp').ownerEmail === 'suda@k-create.co.jp', '管理者は誰の担当でも付け替えられる');
+throws(function () { seko.assign(bad2.id, 'suda@k-create.co.jp'); }, /管理者だけ/, '担当なしの回答をほかの人に付けるのは管理者だけ');
+ok(seko.assign(bad2.id, 'seko@k-create.co.jp').ownerEmail === 'seko@k-create.co.jp', '担当なしは自分になら付けられる');
+
 console.log((fail ? 'FAIL ' : 'ALL OK ') + (n - fail) + '/' + n);
 process.exit(fail ? 1 : 0);
