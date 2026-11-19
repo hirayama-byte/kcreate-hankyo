@@ -1,6 +1,6 @@
 // 反響事例管理 — 管理サイト（社内のみ）
 // デプロイ: ウェブアプリ / 実行ユーザー=自分 / アクセス=ドメイン内のユーザー
-// 全員が全部見られる。担当の情報（ジャンル・掲載月・媒体・サイズ・料金）を入れる／直す／消すのは担当本人と管理者
+// 全員が全部見られる。担当の情報（ジャンル・掲載号・媒体・サイズ・料金）を入れる／直す／消すのは担当本人と管理者
 
 var TZ = 'Asia/Tokyo';
 var SHEET_ID = '1w-4FIkRfEjiCEo6LwKKb8CoXMOvT7_c6ASFpVkrO3ks'; // 反響事例管理データ（フォームの受け口 gas-api の親）
@@ -146,7 +146,7 @@ function saveSales(id, d) {
   d = d || {};
   var clean = function (v, n) { var s = String(v == null ? '' : v).trim().slice(0, n); return /^[=+\-@]/.test(s) ? "'" + s : s; };
   var month = String(d.month || '').trim();
-  if (month && !/^\d{4}-(0[1-9]|1[0-2])$/.test(month)) throw new Error('掲載月の形が正しくありません');
+  if (month && !/^\d{4}-(0[1-9]|1[0-2])$/.test(month)) throw new Error('掲載号の形が正しくありません');
   var price = String(d.price == null ? '' : d.price).replace(/[,，円\s]/g, '');
   if (price && !/^\d{1,9}$/.test(price)) throw new Error('掲載料金は数字で入れてください（税抜・円）');
   return withLock_(function () {

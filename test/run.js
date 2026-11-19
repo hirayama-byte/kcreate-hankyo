@@ -40,7 +40,7 @@ throws(function () { seko.claim(row.id); }, /須田/, 'ほかの人の担当は�
 throws(function () { seko.saveSales(row.id, { genre: 'グルメ' }); }, /須田/, 'ほかの人の担当の情報は直せない');
 var s = suda.saveSales(row.id, { genre: 'クリニック', month: '2026-11', media: '一宮', size: '1/4P AD', price: '30,000', memo: '次回2回で提案' });
 ok(s.genre === 'クリニック' && s.month === '2026-11' && s.media === '一宮' && s.size === '1/4P AD' && s.price === 30000 && s.memo === '次回2回で提案', '担当の情報を入れる: ' + JSON.stringify([s.month, s.price]));
-throws(function () { suda.saveSales(row.id, { month: '2026/11' }); }, /掲載月/, '掲載月の形');
+throws(function () { suda.saveSales(row.id, { month: '2026/11' }); }, /掲載号/, '掲載号の形');
 throws(function () { suda.saveSales(row.id, { price: '三万' }); }, /数字/, '料金は数字');
 var other = d.rows.filter(function (r) { return r.keisai === 'カフェ ノクト'; })[0];
 var s2 = seko.saveSales(other.id, { genre: 'グルメ', month: '2026-10', media: '江南' });

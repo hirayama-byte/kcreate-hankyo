@@ -23,7 +23,7 @@ var U = process.argv[2] || 'http://localhost:8820', out = path.join(__dirname, '
   await a.screenshot({ path: path.join(out, 'admin-todo.png'), fullPage: true });
   var n0 = await a.$$eval('.rc', function (l) { return l.length; });
   await a.click('.rc:has-text("テスト整骨院") button[data-a=claim]'); await a.waitForSelector('dialog[open]');
-  await a.selectOption('#dGenre', 'クリニック'); await a.fill('#dMonth', '2026-11'); await a.selectOption('#dMedia', '一宮'); await a.selectOption('#dSize', '1/4P AD'); await a.fill('#dPrice', '30000');
+  await a.selectOption('#dGenre', 'クリニック'); await a.selectOption('#dMonth', '2026-11'); await a.selectOption('#dMedia', '一宮'); await a.selectOption('#dSize', '1/4P AD'); await a.fill('#dPrice', '30000');
   await a.screenshot({ path: path.join(out, 'admin-edit.png') });
   await a.click('#dSave'); await a.waitForSelector('dialog[open]', { state: 'detached' }).catch(function () {}); await a.waitForTimeout(400);
   check(!(await a.$('dialog[open]')), '担当の情報を保存');
