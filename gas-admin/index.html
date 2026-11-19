@@ -384,7 +384,7 @@ document.getElementById('main').addEventListener('click', function (e) {
 function drawTodo() {
   var rows = live().filter(function (r) { return !r.ownerEmail; });
   var mineTodo = live().filter(function (r) { return r.ownerEmail === S.me.email && (!r.genre || !r.month || !r.media); });
-  $('main').innerHTML = '<div class="bar"><span class="hint" style="flex:1">フォームから届いて、まだ担当が決まっていない回答です。自分のお客さんの回答は、担当の欄で自分を選ぶか、ジャンル・掲載号・媒体・サイズを選んでください（選んだ人の担当になります）。料金と社内メモは回答を押した詳細ページで入れられます。</span>' + viewSeg() + '</div>'
+  $('main').innerHTML = '<div class="bar"><span class="hint" style="flex:1">フォームから届いて、まだ担当が決まっていない回答です。自分のお客さんの回答は、担当の欄で自分を選ぶか、ジャンル・掲載号・媒体・サイズを選んでください。</span>' + viewSeg() + '</div>'
     + cardsHtml(rows, '担当が決まっていない回答はありません')
     + (mineTodo.length ? '<h2 class="sec">自分の担当で、担当の情報がまだの回答（' + mineTodo.length + '件）</h2>' + cardsHtml(mineTodo, '') : '');
 }
