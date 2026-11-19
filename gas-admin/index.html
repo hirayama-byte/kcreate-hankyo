@@ -37,7 +37,7 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:"Noto Sans JP",
 .topbar{height:60px;background:var(--card);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px;padding:0 28px;position:sticky;top:0;z-index:5}
 .topbar h1{font-size:17px;margin:0}
 .topbar .crumb{color:var(--faint);font-size:12px}
-main{padding:24px 28px;max-width:1280px}
+main{padding:24px 28px} /* PCでは右いっぱいまで（2026-11-19 オーナー指示） */
 input,select,.btn{font:inherit;font-size:13.5px;height:36px;padding:0 12px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--text)}
 input[type=checkbox]{height:auto}
 input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent-2);box-shadow:0 0 0 3px rgba(59,130,246,.15)}
@@ -139,9 +139,8 @@ select.inl{font:inherit;font-size:12.5px;height:30px;border:1px solid var(--line
 .dt table.ed td{padding:5px 10px}.dt table.ed select.inl{max-width:260px;height:34px;font-size:13.5px}input.inl{font:inherit;font-size:13.5px;height:34px;border:1px solid var(--line);border-radius:6px;padding:0 10px}
 textarea.inl.memo{display:block;width:100%;box-sizing:border-box;min-height:84px;font:inherit;font-size:14px;line-height:1.7;border:1px solid var(--line);border-radius:8px;padding:10px 14px;resize:vertical}
 table.lt tr.r{cursor:pointer}table.lt tr.r:hover td{background:#f8fafc}table.lt tr.del td{opacity:.55}
-table.lt td.nm2{font-weight:500;max-width:160px;overflow:hidden;text-overflow:ellipsis}
-table.lt td.sat2 div{display:flex;align-items:center;gap:4px;line-height:1.5}table.lt td.sat2 i{font-style:normal;font-size:10.5px;color:var(--faint);width:2.2em}table.lt td.sat2 .pill{font-size:11px;padding:0 7px}
-table.lt td.tx{max-width:128px;overflow:hidden;text-overflow:ellipsis;color:#334155}
+table.lt td.nm2{font-weight:500;max-width:200px;overflow:hidden;text-overflow:ellipsis}
+table.lt td.tx{max-width:360px;overflow:hidden;text-overflow:ellipsis;color:#334155}
 table.lt td.num{text-align:right;font-family:var(--mono)}
 table.lt td.dt2{font-family:var(--mono);font-size:12px;color:var(--muted)}
 table.lt .via{font-size:10.5px;color:#15803d;background:#dcfce7;border-radius:4px;padding:0 5px;margin-left:4px}
@@ -314,9 +313,9 @@ document.addEventListener('click', function (e) { var b = e.target.closest('#vie
 var SHORT = { 5: '満足', 4: 'やや満足', 3: 'どちらとも', 2: 'やや不満', 1: '不満' };
 function tableHtml(rows) {
   var sp = function (n) { return n ? '<span class="pill p' + n + '">' + SHORT[n] + '</span>' : ''; };
-  return '<div class="tw"><table class="lt"><thead><tr><th>回答日</th><th>掲載名</th><th>満足度</th><th>具体的な反響</th><th>担当</th><th>ジャンル</th><th>掲載号</th><th>媒体</th><th>サイズ</th><th class="num">料金</th></tr></thead><tbody>'
+  return '<div class="tw"><table class="lt"><thead><tr><th>回答日</th><th>掲載名</th><th>反響</th><th>費用感</th><th>具体的な反響</th><th>担当</th><th>ジャンル</th><th>掲載号</th><th>媒体</th><th>サイズ</th><th class="num">料金</th></tr></thead><tbody>'
     + rows.map(function (r) {
-      return '<tr class="r' + (r.deleted ? ' del' : '') + '" data-open="' + r.id + '"><td class="dt2" title="' + esc(r.at) + '">' + esc(String(r.at).slice(5, 10).replace(/^0?(\d+)-0?(\d+)$/, '$1/$2')) + '</td><td class="nm2" title="' + esc(r.keisai) + '">' + esc(r.keisai) + '</td><td class="sat2"><div><i>反響</i>' + sp(r.satHankyo) + '</div><div><i>費用</i>' + sp(r.satCost) + '</div></td>'
+      return '<tr class="r' + (r.deleted ? ' del' : '') + '" data-open="' + r.id + '"><td class="dt2" title="' + esc(r.at) + '">' + esc(String(r.at).slice(5, 10).replace(/^0?(\d+)-0?(\d+)$/, '$1/$2')) + '</td><td class="nm2" title="' + esc(r.keisai) + '">' + esc(r.keisai) + '</td><td>' + sp(r.satHankyo) + '</td><td>' + sp(r.satCost) + '</td>'
         + '<td class="tx" title="' + esc(r.hankyo) + '">' + (r.hankyo ? esc(r.hankyo) : '<span class="hint">—</span>') + '</td>'
         + '<td>' + ownerSel(r) + (r.via ? '<span class="via" title="担当者専用フォームから">専用</span>' : '') + '</td>'
         + '<td>' + fieldSel(r, 'genre') + '</td><td>' + fieldSel(r, 'month') + '</td><td>' + fieldSel(r, 'media') + '</td><td>' + fieldSel(r, 'size') + '</td><td class="num">' + (r.price === '' ? '' : Number(r.price).toLocaleString('ja-JP')) + '</td></tr>';
