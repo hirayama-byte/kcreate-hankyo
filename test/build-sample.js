@@ -62,7 +62,7 @@ var boot = '\n<script>\n' + esc(mock) + '\n</script>\n<script>\n(function () {\n
   + '  env.HtmlService = {}; var keys = Object.keys(env).filter(function (k) { return /^[A-Za-z]/.test(k); });\n'
   + '  return new Function(keys.join(","), code + "\\n;return {" + names.map(function (n) { return n + ":" + n; }).join(",") + "};").apply(null, keys.map(function (k) { return env[k]; })); }\n'
   + 'var API = ' + JSON.stringify(apiCode) + ', ADMIN = ' + JSON.stringify(adminCode) + ';\n'
-  + 'var FNS = ["init","listRows","claim","release","saveSales","removeRow","restoreRow","saveMaster"];\n'
+  + 'var FNS = ["init","listRows","claim","release","assign","saveField","saveSales","removeRow","restoreRow","saveMaster","createMyForm","saveMyForm"];\n'
   + 'var api = load(API, "", ["doPost"]), me = load(ADMIN, PEOPLE[0][0], FNS); me.init();\n'
   + 'var ss = store[SHEET_ID]; ss.getSheetByName("admins").appendRow(["sample@k-create.co.jp"]);\n'
   + 'ss.getSheetByName("settings").appendRow(["form_url", "form.html"]);\n'
