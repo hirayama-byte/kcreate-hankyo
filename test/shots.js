@@ -30,6 +30,14 @@ var U = process.argv[2] || 'http://localhost:8820', out = path.join(__dirname, '
   await a.click('#tabs button[data-t=list]'); await a.waitForTimeout(200);
   await a.screenshot({ path: path.join(out, 'admin-list.png'), fullPage: true });
   check((await a.textContent('.rc:has-text("テスト整骨院")')).indexOf('瀬古') >= 0, '一覧に担当が出る');
+  // 回答の詳細（カードを押すと全文・戻る）
+  var long = await a.$('.rc:has-text("テスト整骨院")'); await long.click({ position: { x: 20, y: 60 } }); await a.waitForSelector('.dt');
+  check((await a.textContent('#pageTitle')) === '回答の詳細' && /掲載号/.test(await a.textContent('.dt')), 'カードを押すと詳細');
+  await a.screenshot({ path: path.join(out, 'admin-detail.png'), fullPage: true });
+  await a.click('#dtBack'); await a.waitForSelector('.rc');
+  check(!(await a.$('.dt')), '戻ると一覧');
+  var btnCount = await a.locator('.rc:has-text("テスト整骨院")').first().locator('button').count();
+  check(btnCount <= 4, 'ボタンが重複していない（' + btnCount + '）');
   await a.click('#tabs button[data-t=stats]'); await a.waitForTimeout(200);
   await a.screenshot({ path: path.join(out, 'admin-stats.png'), fullPage: true });
   check(await a.$$eval('table.st tr', function (l) { return l.length; }) > 2, '分析の表');
