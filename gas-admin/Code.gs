@@ -212,6 +212,25 @@ function saveSales(id, d) {
     return rowObj_(f.sh.getRange(f.row, 1, 1, RESP_HEAD.length).getValues()[0]);
   });
 }
+// 一覧の表・詳細ページで1項目だけ直す（その場で保存・2026-11-19）。ほかの項目は触らないので、続けて直しても上書きし合わない
+// 担当がいなければ直した人が担当になる（saveSales と同じ）
+function saveField(id, key, value) {
+  var me = myEmail_(), lim = { genre: 40, media: 40, size: 40, memo: 1000, month: 0, price: 0 };
+  if (!(key in lim)) throw new Error('直せない項目です');
+  var v = String(value == null ? '' : value).trim();
+  if (key === 'month' && v && !/^\d{4}-(0[1-9]|1[0-2])$/.test(v)) throw new Error('掲載号の形が正しくありません');
+  if (key === 'price') { v = v.replace(/[,，円\s]/g, ''); if (v && !/^\d{1,9}$/.test(v)) throw new Error('掲載料金は数字で入れてください（税抜・円）'); }
+  if (lim[key]) { v = v.slice(0, lim[key]); if (/^[=+\-@]/.test(v)) v = "'" + v; }
+  return withLock_(function () {
+    var f = findRow_(id);
+    if (f.obj.deleted) throw new Error('削除された回答です');
+    var kv = { updated: now_() }; kv[key] = v;
+    if (!f.obj.ownerEmail) { kv.owner_email = me; kv.owner_name = nameOf_(me); kv.claimed_at = now_(); }
+    else if (!canEdit_(f.obj, me)) throw new Error('担当の ' + f.obj.ownerName + ' さんか管理者だけが直せます');
+    setCols_(f, kv);
+    return rowObj_(f.sh.getRange(f.row, 1, 1, RESP_HEAD.length).getValues()[0]);
+  });
+}
 // 削除（ゴミ箱。管理者が戻せる）／戻す（管理者）
 function removeRow(id) {
   var me = myEmail_();

@@ -17,7 +17,8 @@ var U = process.argv[2] || 'http://localhost:8820', out = path.join(__dirname, '
   await p.screenshot({ path: path.join(out, 'form-done.png') });
   check(true, '送信できる');
   // 管理サイト（PC）
-  var a = await (await b.newContext({ viewport: { width: 1280, height: 900 } })).newPage(); a.on('pageerror', function (e) { errs.push(e.message); });
+  var ac = await b.newContext({ viewport: { width: 1280, height: 900 } }); await ac.addInitScript(function () { try { localStorage.setItem('hankyo-view2', 'card'); } catch (x) {} }); // ここの確認はカード表示で（表は test/inline.js）
+  var a = await ac.newPage(); a.on('pageerror', function (e) { errs.push(e.message); });
   await a.goto(U + '/admin/?as=seko@k-create.co.jp'); await a.waitForSelector('.rc');
   check(/未割り当て/.test(await a.textContent('#tabs button.on')), '未割り当てがあれば最初に出る');
   await a.screenshot({ path: path.join(out, 'admin-todo.png'), fullPage: true });
@@ -46,7 +47,8 @@ var U = process.argv[2] || 'http://localhost:8820', out = path.join(__dirname, '
   await a.screenshot({ path: path.join(out, 'admin-cases.png'), fullPage: true });
   await a.click('#tabs button[data-t=settings]'); await a.waitForTimeout(800);
   await a.screenshot({ path: path.join(out, 'admin-settings.png'), fullPage: true });
-  var mp = await (await b.newContext({ viewport: { width: 390, height: 844 } })).newPage(); mp.on('pageerror', function (e) { errs.push(e.message); });
+  var mc = await b.newContext({ viewport: { width: 390, height: 844 } }); await mc.addInitScript(function () { try { localStorage.setItem('hankyo-view2', 'card'); } catch (x) {} });
+  var mp = await mc.newPage(); mp.on('pageerror', function (e) { errs.push(e.message); });
   await mp.goto(U + '/admin/?as=suda@k-create.co.jp'); await mp.waitForSelector('.rc'); await mp.screenshot({ path: path.join(out, 'admin-phone.png') });
   check(errs.length === 0, '画面のエラーなし ' + errs.join(' | '));
   await b.close(); console.log(fail ? 'FAIL' : 'ALL OK'); process.exit(fail ? 1 : 0);

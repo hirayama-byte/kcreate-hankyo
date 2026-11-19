@@ -133,11 +133,15 @@ dialog::backdrop{background:rgba(15,23,42,.45)}
 .seg2 svg{width:14px;height:14px}
 .tw{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);overflow:auto}
 table.lt{width:100%;border-collapse:collapse;min-width:980px}
-table.lt th{font-size:11px;color:var(--muted);font-weight:500;letter-spacing:.06em;white-space:nowrap;background:#f8fafc;border-bottom:1px solid var(--line);text-align:left;padding:10px 12px;position:sticky;top:0;z-index:1}
-table.lt td{padding:10px 12px;border-bottom:1px solid var(--line-2);font-size:13px;vertical-align:middle;white-space:nowrap}
+table.lt th{font-size:11px;color:var(--muted);font-weight:500;letter-spacing:.06em;white-space:nowrap;background:#f8fafc;border-bottom:1px solid var(--line);text-align:left;padding:10px 8px;position:sticky;top:0;z-index:1}
+table.lt td{padding:8px 8px;border-bottom:1px solid var(--line-2);font-size:13px;vertical-align:middle;white-space:nowrap}
+select.inl{font:inherit;font-size:12.5px;height:30px;border:1px solid var(--line);border-radius:6px;background:#fff;padding:0 4px;max-width:128px;cursor:pointer;color:var(--text)}select.inl:hover{border-color:var(--accent)}select.inl.none{color:var(--faint)}select.inl:disabled{opacity:.5}
+.dt table.ed td{padding:5px 10px}.dt table.ed select.inl{max-width:260px;height:34px;font-size:13.5px}input.inl{font:inherit;font-size:13.5px;height:34px;border:1px solid var(--line);border-radius:6px;padding:0 10px}
+textarea.inl.memo{display:block;width:100%;box-sizing:border-box;min-height:84px;font:inherit;font-size:14px;line-height:1.7;border:1px solid var(--line);border-radius:8px;padding:10px 14px;resize:vertical}
 table.lt tr.r{cursor:pointer}table.lt tr.r:hover td{background:#f8fafc}table.lt tr.del td{opacity:.55}
-table.lt td.nm2{font-weight:500;max-width:200px;overflow:hidden;text-overflow:ellipsis}
-table.lt td.tx{max-width:280px;overflow:hidden;text-overflow:ellipsis;color:#334155}
+table.lt td.nm2{font-weight:500;max-width:160px;overflow:hidden;text-overflow:ellipsis}
+table.lt td.sat2 div{display:flex;align-items:center;gap:4px;line-height:1.5}table.lt td.sat2 i{font-style:normal;font-size:10.5px;color:var(--faint);width:2.2em}table.lt td.sat2 .pill{font-size:11px;padding:0 7px}
+table.lt td.tx{max-width:128px;overflow:hidden;text-overflow:ellipsis;color:#334155}
 table.lt td.num{text-align:right;font-family:var(--mono)}
 table.lt td.dt2{font-family:var(--mono);font-size:12px;color:var(--muted)}
 table.lt .via{font-size:10.5px;color:#15803d;background:#dcfce7;border-radius:4px;padding:0 5px;margin-left:4px}
@@ -217,7 +221,7 @@ function upsert(r) { var i = S.rows.findIndex(function (x) { return x.id === r.i
 
 run('init').then(function (d) {
   S.me = d.me; S.masters = d.masters; S.formUrl = d.formUrl; S.sheetUrl = d.sheetUrl; S.myForm = d.myForm; S.defaultPh = d.defaultPh || {}; S.people = d.people || [];
-  try { S.view = localStorage.getItem('hankyo-view') || 'card'; } catch (x) { S.view = 'card'; }
+  try { S.view = localStorage.getItem('hankyo-view2') || 'table'; } catch (x) { S.view = 'table'; } // 最初は表（2026-11-19 オーナー指示）
   S.rows = d.rows.sort(function (a, b) { return a.at < b.at ? 1 : -1; });
   $('me').textContent = d.me.name; $('meRole').textContent = d.me.isAdmin ? '管理者' : 'メンバー'; $('meAv').textContent = (d.me.name || '?').charAt(0);
   if (!live().some(function (r) { return !r.ownerEmail; }) && !S.rows.length) S.tab = 'settings';
@@ -283,17 +287,22 @@ function drawDetail() {
   var r = S.rows.find(function (x) { return x.id === S.detailId; });
   if (!r) { S.detailId = null; return draw(); }
   var sec = function (t, v) { return '<div class="sec"><b>' + t + '</b><div class="t' + (v ? '' : ' no') + '">' + (v ? esc(v) : '（記入なし）') + '</div></div>'; };
-  var row = function (k, v) { return '<tr><th>' + k + '</th><td>' + (v ? esc(v) : '<span class="hint">未入力</span>') + '</td></tr>'; };
+  // 担当の情報はその場で直す（直せない人には文字だけ）。ボタンは削除だけ（2026-11-19 オーナー指示）
+  var can = canEditRow(r);
+  var row = function (k, html) { return '<tr><th>' + KNAME[k] + (k === 'price' ? '（税抜）' : '') + '</th><td>' + html + '</td></tr>'; };
+  var price = can ? '<input class="inl" type="text" inputmode="numeric" data-id="' + r.id + '" data-k="price" value="' + esc(r.price) + '" placeholder="例：30000" style="width:140px"> <span class="hint">円</span>' : (r.price === '' ? '<span class="hint">—</span>' : esc(yen(r.price)));
+  var memo = can ? '<textarea class="inl memo" data-id="' + r.id + '" data-k="memo" maxlength="1000" placeholder="社内だけのメモ（お客様には見えません）">' + esc(r.memo) + '</textarea>' : (r.memo ? '<div class="t">' + esc(r.memo) + '</div>' : '<div class="t no">（記入なし）</div>');
+  var acts = r.deleted ? (S.me.isAdmin ? '<button class="btn sm" data-a="restore" data-id="' + r.id + '">戻す</button>' : '') : (r.ownerEmail === S.me.email || S.me.isAdmin) ? '<button class="btn sm red" data-a="del" data-id="' + r.id + '">削除</button>' : '';
   var back = { todo: '未割り当て', list: S.f.folder === 'mine' ? '自分の案件' : '回答一覧', stats: '分析', cases: '事例', settings: 'フォーム・設定' }[S.tab] || '一覧';
   $('main').innerHTML = '<button class="btn back" id="dtBack">← ' + esc(back) + 'に戻る</button>'
     + '<div class="dt"><h2>' + esc(r.keisai) + '</h2><div class="meta">' + esc(r.at) + ' の回答' + (r.deleted ? '（削除済み）' : '') + '</div>'
     + '<div class="sat">' + pill(r.satHankyo, '① 反響') + pill(r.satCost, '③ 費用感') + '</div>'
     + sec('② 具体的な反響', r.hankyo) + sec('④ 費用感の理由', r.riyu) + sec('⑤ ご要望', r.youbou)
-    + '<div class="sec"><b>担当の情報</b><table>'
-    + row('担当', r.ownerName ? r.ownerName + (r.via ? '（専用アンケートから）' : '') : '') + row('ジャンル', r.genre) + row('掲載号', fmtMonth(r.month)) + row('媒体', r.media ? r.media + '版' : '') + row('掲載サイズ・枠', r.size) + row('掲載料金（税抜）', r.price === '' ? '' : yen(r.price))
+    + '<div class="sec"><b>担当の情報' + (can ? '<span class="hint" style="font-weight:400;margin-left:8px">変えるとすぐ保存されます</span>' : '') + '</b><table class="ed">'
+    + row('owner', ownerSel(r) + (r.via ? ' <span class="hint">（専用アンケートから）</span>' : '')) + row('genre', fieldSel(r, 'genre')) + row('month', fieldSel(r, 'month')) + row('media', fieldSel(r, 'media')) + row('size', fieldSel(r, 'size')) + row('price', price)
     + '</table></div>'
-    + sec('社内メモ', r.memo)
-    + '<div class="acts">' + actsOf(r).join('') + '</div></div>';
+    + '<div class="sec"><b>社内メモ</b>' + memo + '</div>'
+    + (acts ? '<div class="acts">' + acts + '</div>' : '') + '</div>';
   $('dtBack').onclick = closeDetail;
 }
 // 表示の切り替え（カード／表・2026-11-19。QR管理のように1行ずつ並べる表。選んだ形はこの端末に覚える）
@@ -301,22 +310,57 @@ function viewSeg() {
   var ic = { card: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="8" height="8" rx="1"/><rect x="13" y="3" width="8" height="8" rx="1"/><rect x="3" y="13" width="8" height="8" rx="1"/><rect x="13" y="13" width="8" height="8" rx="1"/></svg>', table: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>' };
   return '<div class="seg2" id="viewSeg"><button data-view="card"' + (S.view !== 'table' ? ' class="on"' : '') + '>' + ic.card + 'カード</button><button data-view="table"' + (S.view === 'table' ? ' class="on"' : '') + '>' + ic.table + '表</button></div>';
 }
-document.addEventListener('click', function (e) { var b = e.target.closest('#viewSeg button'); if (!b) return; S.view = b.dataset.view; try { localStorage.setItem('hankyo-view', S.view); } catch (x) {} draw(); });
+document.addEventListener('click', function (e) { var b = e.target.closest('#viewSeg button'); if (!b) return; S.view = b.dataset.view; try { localStorage.setItem('hankyo-view2', S.view); } catch (x) {} draw(); });
 var SHORT = { 5: '満足', 4: 'やや満足', 3: 'どちらとも', 2: 'やや不満', 1: '不満' };
 function tableHtml(rows) {
   var sp = function (n) { return n ? '<span class="pill p' + n + '">' + SHORT[n] + '</span>' : ''; };
-  return '<div class="tw"><table class="lt"><thead><tr><th>回答日</th><th>掲載名</th><th>反響</th><th>費用感</th><th>具体的な反響</th><th>担当</th><th>ジャンル</th><th>掲載号</th><th>媒体</th><th>サイズ</th><th class="num">料金</th></tr></thead><tbody>'
+  return '<div class="tw"><table class="lt"><thead><tr><th>回答日</th><th>掲載名</th><th>満足度</th><th>具体的な反響</th><th>担当</th><th>ジャンル</th><th>掲載号</th><th>媒体</th><th>サイズ</th><th class="num">料金</th></tr></thead><tbody>'
     + rows.map(function (r) {
-      return '<tr class="r' + (r.deleted ? ' del' : '') + '" data-open="' + r.id + '"><td class="dt2">' + esc(String(r.at).slice(0, 10)) + '</td><td class="nm2" title="' + esc(r.keisai) + '">' + esc(r.keisai) + '</td><td>' + sp(r.satHankyo) + '</td><td>' + sp(r.satCost) + '</td>'
+      return '<tr class="r' + (r.deleted ? ' del' : '') + '" data-open="' + r.id + '"><td class="dt2" title="' + esc(r.at) + '">' + esc(String(r.at).slice(5, 10).replace(/^0?(\d+)-0?(\d+)$/, '$1/$2')) + '</td><td class="nm2" title="' + esc(r.keisai) + '">' + esc(r.keisai) + '</td><td class="sat2"><div><i>反響</i>' + sp(r.satHankyo) + '</div><div><i>費用</i>' + sp(r.satCost) + '</div></td>'
         + '<td class="tx" title="' + esc(r.hankyo) + '">' + (r.hankyo ? esc(r.hankyo) : '<span class="hint">—</span>') + '</td>'
-        + '<td>' + (r.ownerName ? esc(r.ownerName) + (r.via ? '<span class="via" title="担当者専用フォームから">専用</span>' : '') : '<span class="chip none">担当なし</span>') + '</td>'
-        + '<td>' + esc(r.genre) + '</td><td>' + esc(fmtMonth(r.month)) + '</td><td>' + (r.media ? esc(r.media) + '版' : '') + '</td><td>' + esc(r.size) + '</td><td class="num">' + (r.price === '' ? '' : Number(r.price).toLocaleString('ja-JP')) + '</td></tr>';
+        + '<td>' + ownerSel(r) + (r.via ? '<span class="via" title="担当者専用フォームから">専用</span>' : '') + '</td>'
+        + '<td>' + fieldSel(r, 'genre') + '</td><td>' + fieldSel(r, 'month') + '</td><td>' + fieldSel(r, 'media') + '</td><td>' + fieldSel(r, 'size') + '</td><td class="num">' + (r.price === '' ? '' : Number(r.price).toLocaleString('ja-JP')) + '</td></tr>';
     }).join('') + '</tbody></table></div>';
 }
+// ---------- その場で直す（一覧の表・詳細ページ・2026-11-19 オーナー「QR管理のように1つずつ開かなくても変えられる」） ----------
+// 直せる人: 担当本人・管理者。担当なしの回答は誰でも（直すと自分の担当になる）。直せない回答は文字だけ出す
+function canEditRow(r) { return !r.deleted && (!r.ownerEmail || r.ownerEmail === S.me.email || S.me.isAdmin); }
+function fieldText(r, k) { var v = r[k]; if (k === 'month') return fmtMonth(v); if (k === 'media' && v) return v + '版'; if (k === 'price') return v === '' ? '' : yen(v); return v; }
+function fieldSel(r, k) {
+  if (!canEditRow(r)) { var t = fieldText(r, k); return t ? esc(t) : '<span class="hint">—</span>'; }
+  var cur = r[k] || '', o;
+  if (k === 'month') o = issueOpts(cur);
+  else { var l = (S.masters[{ genre: 'genres', media: 'media', size: 'sizes' }[k]] || []).slice(); if (cur && l.indexOf(cur) < 0) l.push(cur); o = '<option value="">（選ぶ）</option>' + l.map(function (v) { return '<option value="' + esc(v) + '"' + (v === cur ? ' selected' : '') + '>' + esc(v) + (k === 'media' ? '版' : '') + '</option>'; }).join(''); }
+  return '<select class="inl' + (cur ? '' : ' none') + '" data-id="' + r.id + '" data-k="' + k + '">' + o + '</select>';
+}
+// 担当のプルダウン: 本人・管理者は名簿の誰にでも（「担当なし」に戻すのもここ）。担当なしの回答は、管理者は誰でも・ほかの人は自分だけ
+function ownerSel(r) {
+  var mine = r.ownerEmail === S.me.email;
+  if (r.deleted || (r.ownerEmail && !mine && !S.me.isAdmin)) return r.ownerName ? esc(r.ownerName) : '<span class="chip none">担当なし</span>';
+  var ppl = (S.me.isAdmin || mine) ? S.people.slice() : S.people.filter(function (p) { return p.email === S.me.email; });
+  if (!ppl.some(function (p) { return p.email === S.me.email; })) ppl.unshift({ email: S.me.email, name: S.me.name });
+  if (r.ownerEmail && !ppl.some(function (p) { return p.email === r.ownerEmail; })) ppl.unshift({ email: r.ownerEmail, name: r.ownerName });
+  return '<select class="inl own' + (r.ownerEmail ? '' : ' none') + '" data-id="' + r.id + '" data-k="owner"><option value="">担当なし</option>'
+    + ppl.map(function (p) { return '<option value="' + esc(p.email) + '"' + (p.email === r.ownerEmail ? ' selected' : '') + '>' + esc(p.name) + (p.email === S.me.email ? '（自分）' : '') + '</option>'; }).join('') + '</select>';
+}
+var KNAME = { owner: '担当', genre: 'ジャンル', month: '掲載号', media: '媒体', size: '掲載サイズ・枠', price: '掲載料金', memo: '社内メモ' };
+document.getElementById('main').addEventListener('change', function (e) {
+  var el = e.target.closest('.inl'); if (!el) return;
+  var id = el.dataset.id, k = el.dataset.k, r = S.rows.find(function (x) { return x.id === id; }); if (!r) return;
+  var v = el.value, had = !!r.ownerEmail;
+  var p = k === 'owner' ? (v ? run('assign', id, v) : run('release', id)) : run('saveField', id, k, v);
+  el.disabled = true;
+  p.then(function (nr) {
+    upsert(nr);
+    var label = k === 'owner' ? (nr.ownerName || '担当なし') : (fieldText(nr, k) || '空');
+    toast((k === 'memo' ? '社内メモを保存しました' : KNAME[k] + 'を「' + label + '」にしました') + (k !== 'owner' && !had && nr.ownerEmail ? '（あなたの担当になりました）' : ''));
+    if (S.detailId) { var y = window.scrollY; draw(); window.scrollTo(0, y); } else { var tw = document.querySelector('.tw'), sl = tw ? tw.scrollLeft : 0, y2 = window.scrollY; draw(); var tw2 = document.querySelector('.tw'); if (tw2) tw2.scrollLeft = sl; window.scrollTo(0, y2); }
+  }).catch(function (err) { el.disabled = false; el.value = k === 'owner' ? (r.ownerEmail || '') : (r[k] == null ? '' : r[k]); toast(err.message); });
+});
 function cardsHtml(rows, emptyText) { if (!rows.length) return '<div class="empty">' + emptyText + '</div>'; return S.view === 'table' ? tableHtml(rows) : '<div class="cards">' + rows.map(card).join('') + '</div>'; }
 document.getElementById('main').addEventListener('click', function (e) {
   var b = e.target.closest('button[data-a]');
-  if (!b) { var c = e.target.closest('[data-open]'); if (c && !window.getSelection().toString()) openDetail(c.dataset.open); return; }
+  if (!b) { if (e.target.closest('.inl')) return; var c = e.target.closest('[data-open]'); if (c && !window.getSelection().toString()) openDetail(c.dataset.open); return; }
   var id = b.dataset.id, a = b.dataset.a;
   if (a === 'edit') return openEdit(id);
   if (a === 'del') {
@@ -339,7 +383,7 @@ document.getElementById('main').addEventListener('click', function (e) {
 function drawTodo() {
   var rows = live().filter(function (r) { return !r.ownerEmail; });
   var mineTodo = live().filter(function (r) { return r.ownerEmail === S.me.email && (!r.genre || !r.month || !r.media); });
-  $('main').innerHTML = '<div class="bar"><span class="hint" style="flex:1">フォームから届いて、まだ担当が決まっていない回答です。自分のお客さんの回答に「自分の担当にする」を押して、ジャンル・掲載号・媒体・サイズ・料金を入れてください。</span>' + viewSeg() + '</div>'
+  $('main').innerHTML = '<div class="bar"><span class="hint" style="flex:1">フォームから届いて、まだ担当が決まっていない回答です。自分のお客さんの回答は、担当の欄で自分を選ぶか、ジャンル・掲載号・媒体・サイズを選んでください（選んだ人の担当になります）。料金と社内メモは回答を押した詳細ページで入れられます。</span>' + viewSeg() + '</div>'
     + cardsHtml(rows, '担当が決まっていない回答はありません')
     + (mineTodo.length ? '<h2 class="sec">自分の担当で、担当の情報がまだの回答（' + mineTodo.length + '件）</h2>' + cardsHtml(mineTodo, '') : '');
 }

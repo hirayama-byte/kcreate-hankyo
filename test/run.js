@@ -85,5 +85,24 @@ ok(hira.assign(via.id, 'suda@k-create.co.jp').ownerEmail === 'suda@k-create.co.j
 throws(function () { seko.assign(bad2.id, 'suda@k-create.co.jp'); }, /管理者だけ/, '担当なしの回答をほかの人に付けるのは管理者だけ');
 ok(seko.assign(bad2.id, 'seko@k-create.co.jp').ownerEmail === 'seko@k-create.co.jp', '担当なしは自分になら付けられる');
 
+// ---- その場で1項目だけ直す saveField（2026-11-19） ----
+var sf = suda.saveField(via.id, 'genre', 'グルメ');
+ok(sf.genre === 'グルメ' && sf.ownerEmail === 'suda@k-create.co.jp', '担当本人がジャンルを直す');
+var sf2 = suda.saveField(via.id, 'size', '1/4P FO');
+ok(sf2.size === '1/4P FO' && sf2.genre === 'グルメ', 'ほかの項目は消えない');
+ok(suda.saveField(via.id, 'month', '2026-12').month === '2026-12', '掲載号');
+ok(suda.saveField(via.id, 'price', '30,000円').price == 30000, '料金（カンマ・円は取る）');
+ok(suda.saveField(via.id, 'memo', '=社内').memo === "'=社内", 'メモの式は無効化');
+ok(suda.saveField(via.id, 'genre', '').genre === '', '空にもできる');
+throws(function () { suda.saveField(via.id, 'month', '2026-13'); }, /掲載号/, 'おかしな掲載号は断る');
+throws(function () { suda.saveField(via.id, 'price', 'abc'); }, /数字/, 'おかしな料金は断る');
+throws(function () { suda.saveField(via.id, 'owner_email', 'x'); }, /直せない/, '直せない項目は断る');
+throws(function () { seko.saveField(via.id, 'genre', 'グルメ'); }, /須田/, 'ほかの人の担当は直せない');
+ok(hira.saveField(via.id, 'media', '江南').media === '江南', '管理者は直せる');
+ok(t.submit({ keisai: '担当なしの店', sat_hankyo: 4, sat_cost: 4 }).ok, '共通フォームから送信');
+var un = suda.listRows().filter(function (r) { return r.keisai === '担当なしの店'; })[0];
+var un2 = seko.saveField(un.id, 'genre', 'グルメ');
+ok(un2.ownerEmail === 'seko@k-create.co.jp' && un2.genre === 'グルメ', '担当なしの回答を直すと直した人の担当に');
+
 console.log((fail ? 'FAIL ' : 'ALL OK ') + (n - fail) + '/' + n);
 process.exit(fail ? 1 : 0);
