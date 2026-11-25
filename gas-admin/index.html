@@ -151,6 +151,11 @@ table.lt td.tx{max-width:280px;overflow:hidden;text-overflow:ellipsis;color:#334
 table.lt td.num{text-align:right;font-family:var(--mono)}
 table.lt td.dt2{font-family:var(--mono);font-size:12px;color:var(--muted)}
 table.lt .via{font-size:10.5px;color:#15803d;background:#dcfce7;border-radius:4px;padding:0 5px;margin-left:4px}
+/* 情報読込（管理表から・2026-11-25） */
+.btn.kanri svg{width:15px;height:15px}.btn.kanri.busy{cursor:progress}
+#kdlg{width:min(720px,94vw)}#kdlg .kbody{max-height:62vh;overflow:auto;margin-top:10px}#kdlg h4{font-size:13.5px;margin:16px 0 6px;display:flex;align-items:center;gap:6px}#kdlg h4 .n{font-family:var(--mono);font-size:12px;color:var(--muted);font-weight:500}
+#kdlg ul{list-style:none;margin:0;padding:0}#kdlg li{border:1px solid var(--line-2);background:#f8fafc;border-radius:8px;padding:8px 12px;margin-bottom:6px;font-size:13px}#kdlg li b{font-weight:600}#kdlg li .src{color:var(--muted);font-size:11.5px;margin-left:6px}#kdlg li .chips{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}#kdlg li .why{color:#b45309;font-size:12.5px;margin-top:3px}
+#kdlg .ksum{font-size:14.5px;font-weight:500}#kdlg .warn{background:#fef3c7;color:#92400e;border-radius:8px;padding:8px 12px;font-size:13px;margin-top:10px}
 .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#0f172a;color:#fff;border-radius:8px;padding:9px 16px;font-size:13px;display:none;z-index:20}
 .loading{padding:40px;text-align:center;color:var(--faint)}
 a{color:var(--accent)}
@@ -200,6 +205,11 @@ a{color:var(--accent)}
   <div class="fld"><label>メモ（社内用・任意）</label><textarea id="dMemo" placeholder="例：次回は2回掲載で提案予定"></textarea></div>
   <div class="msg" id="dMsg"></div>
   <div class="acts"><button class="btn" id="dCancel">閉じる</button><button class="btn primary" id="dSave">保存する</button></div>
+</div></dialog>
+<dialog id="kdlg"><div class="dlg">
+  <h3>管理表からの読み込み結果</h3>
+  <div class="kbody" id="kBody"></div>
+  <div class="acts"><button class="btn primary" id="kClose">閉じる</button></div>
 </div></dialog>
 <div class="toast" id="toast"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -510,11 +520,45 @@ document.getElementById('main').addEventListener('click', function (e) {
   }).catch(function (err) { b.disabled = false; toast(err.message); });
 });
 
+// ---------- 情報読込（管理表から担当の情報を入れる・2026-11-25） ----------
+// 押したときだけ動く。ジャンル・掲載号・媒体・サイズ・料金がぜんぶ空の回答にだけ、管理表の中身を入れる（入っているものは変えない）
+function kanriBtn() {
+  var ic = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>';
+  return '<button class="btn kanri' + (S.kanriBusy ? ' busy' : '') + '" id="kanriBtn"' + (S.kanriBusy ? ' disabled' : '') + ' title="会社の管理表（Google ドライブ）から、ジャンル・掲載号・媒体・サイズ・料金と担当を読み込みます。まだ何も入っていない回答だけが対象で、入っているものは変えません">' + ic + (S.kanriBusy ? '読み込み中…' : '情報読込') + '</button>';
+}
+document.addEventListener('click', function (e) {
+  if (!e.target.closest('#kanriBtn') || S.kanriBusy) return;
+  S.kanriBusy = true; draw(); toast('管理表を読み込んでいます。1〜2分かかることがあります');
+  run('loadFromKanri').then(function (res) {
+    return run('listRows').then(function (rows) { S.rows = rows.sort(function (a, b) { return a.at < b.at ? 1 : -1; }); return res; });
+  }).then(function (res) { S.kanriBusy = false; $('toast').style.display = 'none'; draw(); showKanri(res); })
+    .catch(function (err) { S.kanriBusy = false; draw(); toast('読み込めませんでした：' + err.message); });
+});
+function showKanri(res) {
+  var name = { genre: 'ジャンル', month: '掲載号', media: '媒体', size: 'サイズ', price: '料金', owner: '担当' };
+  var val = function (k, v) { return k === 'month' ? fmtMonth(v) : k === 'media' ? v + '版' : k === 'price' ? yen(v) : v; };
+  var src = function (x) { return x.customer ? '<span class="src">管理表：' + esc(x.customer) + (x.editions ? '（' + esc(x.editions.join('・')) + '）' : '') + '</span>' : ''; };
+  var h = '';
+  if (!res.targets) h += '<div class="ksum">読み込む回答はありませんでした。</div><div class="hint" style="margin-top:4px">ジャンル・掲載号・媒体・サイズ・料金が、ぜんぶ空の回答だけが対象です。</div>';
+  else h += '<div class="ksum">' + res.filled.length + '件の回答に、担当の情報を入れました。</div><div class="hint" style="margin-top:4px">対象は、ジャンル・掲載号・媒体・サイズ・料金がぜんぶ空だった ' + res.targets + '件です。すでに入っていた情報は変えていません。</div>';
+  (res.warn || []).forEach(function (w) { h += '<div class="warn">' + esc(w) + '</div>'; });
+  if (res.filled.length) h += '<h4>入れた回答 <span class="n">' + res.filled.length + '件</span></h4><ul>' + res.filled.map(function (x) {
+    return '<li><b>' + esc(x.keisai) + '</b>' + src(x) + '<div class="chips">' + ['owner', 'genre', 'month', 'media', 'size', 'price'].filter(function (k) { return x.set[k] != null && x.set[k] !== ''; }).map(function (k) { return '<span class="chip">' + name[k] + '：' + esc(val(k, x.set[k])) + '</span>'; }).join('') + '</div></li>';
+  }).join('') + '</ul>';
+  if (res.partial.length) h += '<h4>一部の項目が入らなかった回答 <span class="n">' + res.partial.length + '件</span></h4><div class="hint" style="margin-bottom:6px">入らなかった項目は、お手数ですが手で入れてください。</div><ul>' + res.partial.map(function (x) {
+    return '<li><b>' + esc(x.keisai) + '</b>' + src(x) + x.reasons.map(function (w) { return '<div class="why">・' + esc(w) + '</div>'; }).join('') + '</li>';
+  }).join('') + '</ul>';
+  if (res.notFound.length) h += '<h4>管理表で見つからなかった回答 <span class="n">' + res.notFound.length + '件</span></h4><div class="hint" style="margin-bottom:6px">掲載名と管理表の客先名が違う、または回答日より前の号に載っていない回答です。手で入れてください。</div><ul>' + res.notFound.map(function (x) { return '<li><b>' + esc(x.keisai) + '</b></li>'; }).join('') + '</ul>';
+  if (res.read && res.read.editions && res.read.editions.length) h += '<div class="hint" style="margin-top:14px">読み込んだ管理表：' + esc(res.read.editions.join('・')) + '（' + res.read.tabs + 'タブ）</div>';
+  $('kBody').innerHTML = h; $('kdlg').showModal();
+}
+$('kClose').onclick = function () { $('kdlg').close(); };
+
 // ---------- 未割り当て ----------
 function drawTodo() {
   var rows = live().filter(function (r) { return !r.ownerEmail; });
   var mineTodo = live().filter(function (r) { return r.ownerEmail === S.me.email && (!r.genre || !r.month || !r.media); });
-  $('main').innerHTML = '<div class="bar"><span class="hint" style="flex:1">フォームから届いて、まだ担当が決まっていない回答です。自分のお客さんの回答は、担当の欄で自分を選ぶか、ジャンル・掲載号・媒体・サイズを選んでください。</span>' + viewSeg() + '</div>'
+  $('main').innerHTML = '<div class="bar"><span class="hint" style="flex:1">フォームから届いて、まだ担当が決まっていない回答です。自分のお客さんの回答は、担当の欄で自分を選ぶか、ジャンル・掲載号・媒体・サイズを選んでください。</span>' + kanriBtn() + viewSeg() + '</div>'
     + cardsHtml(rows, '担当が決まっていない回答はありません')
     + (mineTodo.length ? '<h2 class="sec">自分の担当で、担当の情報がまだの回答（' + mineTodo.length + '件）</h2>' + cardsHtml(mineTodo, '') : '');
 }
@@ -542,7 +586,7 @@ function drawList() {
     + '<select id="fSat"><option value="">反響満足度</option>' + [5, 4, 3, 2, 1].map(function (n) { return '<option value="' + n + '"' + (String(n) === f.sat ? ' selected' : '') + '>反響：' + LV[n] + '</option>'; }).join('') + '</select>'
     + '<select id="fCost"><option value="">費用感満足度</option>' + [5, 4, 3, 2, 1].map(function (n) { return '<option value="' + n + '"' + (String(n) === f.cost ? ' selected' : '') + '>費用感：' + LV[n] + '</option>'; }).join('') + '</select>'
     + (S.me.isAdmin ? '<label class="hint"><input type="checkbox" id="fDel"' + (f.showDel ? ' checked' : '') + '> 削除したものも</label>' : '')
-    + '<span class="sp"></span>' + viewSeg() + '<span class="hint">' + rows.length + '件</span></div>'
+    + '<span class="sp"></span>' + kanriBtn() + viewSeg() + '<span class="hint">' + rows.length + '件</span></div>'
     + cardsHtml(rows, S.rows.length ? '条件に合う回答はありません' : 'まだ回答はありません。「フォーム・設定」のURLやQRをクライアントに渡してください');
   var on = function (id, k, prop) { var el = $(id); if (!el) return; el.oninput = el.onchange = function () { S.f[k] = prop ? el[prop] : el.value; var pos = id === 'fQ' ? el.selectionStart : null; drawList(); if (pos != null) { var n = $('fQ'); n.focus(); n.setSelectionRange(pos, pos); } }; };
   on('fQ', 'q'); on('fGenre', 'genre'); on('fMedia', 'media'); on('fMonth', 'month'); on('fSat', 'sat'); on('fCost', 'cost'); on('fDel', 'showDel', 'checked');

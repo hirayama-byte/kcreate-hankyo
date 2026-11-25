@@ -104,5 +104,93 @@ var un = suda.listRows().filter(function (r) { return r.keisai === '担当なし
 var un2 = seko.saveField(un.id, 'genre', 'グルメ');
 ok(un2.ownerEmail === 'seko@k-create.co.jp' && un2.genre === 'グルメ', '担当なしの回答を直すと直した人の担当に');
 
+// ---- 情報読込（管理表から担当の情報を入れる・2026-11-25） ----
+(function () {
+  var GasMock = require('./gas-mock.js'), K = require('./kanri-fixture.js');
+  var k = E.make({ members: [['hirayama@k-create.co.jp', '平山 竜也'], ['suda@k-create.co.jp', '須田 諒治'], ['seko@k-create.co.jp', '瀬古 典子'], ['yamada1@k-create.co.jp', '山田 太郎'], ['yamada2@k-create.co.jp', '山田 花子']] });
+  K.build(k.store, GasMock.Spreadsheet, K.FOLDER, {
+    '一宮版': {
+      '26.9月号': [['瀬古', 'トータルケア', 'ご褒美ケア', 'アノン_わんだーらんど', '1/8', '定型', '', '20,000']],
+      '26.10月号': [['瀬古', 'グルメ', '忘年会', '甲羅本店_サカエ商事', '1/8', '定型', '', '99,999']],
+      '26.11月号': [
+        ['瀬古', 'グルメ', '忘年会', '甲羅本店_サカエ商事', '1/4', '定型', '', '75,000'],
+        ['瀬古', 'スクール', 'スクール', '明海学院_スクールメイカー', '1', 'フリー', '', '225,000'],
+        ['瀬古', 'トータルケア', 'ご褒美ケア', 'しんそう一宮新生', '1/4', 'フリー', '', '72,728'],
+        ['瀬古', '暮らし', '暮らし', '北斗_不動産', '1', 'フリー', '', '220,000'],
+        ['瀬古', '暮らし', '暮らし', '北斗_外構', '1', 'フリー', '', '220,000'],
+        ['瀬古', '暮らし', '住もうね', 'モリ塗装', '1/2', 'フリー', '', '140,400'],
+        ['瀬古', '求人', '求人', 'Q&S', '1/3', 'フリー', '30,000', '248,000'],
+        ['瀬古', 'ショップ', 'ショップ', '仲根工業', '1', 'フリー', '', '225,000'],
+        ['山田', 'トータルケア', 'ご褒美ケア', 'はやき_ジンハウス', '1/8', '定型', '', '20,000'],
+        ['', '', '', '', '', '', '', ''],
+        ['瀬古', 'グルメ', '', '', '1/4', '定型', '', '50,000']
+      ],
+      '26.12月号': [['瀬古', 'グルメ', '忘年会', '甲羅本店_サカエ商事', '1', 'フリー', '', '300,000'], ['瀬古', 'グルメ', '忘年会', '弥助寿司', '1/6', '定型', '', '57,000']],
+      '24.1月号': [['瀬古', 'グルメ', '', '古い号の店', '1/8', '定型', '', '1']]
+    },
+    '江南版': { '26.11月号': [['須田', 'グルメ', '忘年会', '甲羅本店_サカエ商事', '1/2', 'フリー', '', '100,000']] },
+    '北区版': { '26.11月号': [['瀬古', 'トータルケア', '', 'アノン_わんだーらんど', '1/4', '定型', '', '30,000']] }
+  });
+  var kanriSnap = function () { return JSON.stringify(Object.keys(k.store).filter(function (id) { return /^kanri-/.test(id); }).map(function (id) { return k.store[id].sheets.map(function (s) { return [s.name, s.data]; }); })); };
+  var snap = kanriSnap();
+  var at = { '甲羅本店': '2026-11-20 10:00', '（株）スクール・メイカー': '2026-11-21 09:00', '甲羅': '2026-11-20 11:00', 'しんそう一宮新生': '2026-11-20 12:00', 'モリ塗装': '2026-11-22 12:00',
+    'わんだーらんど': '2026-10-15 12:00', '弥助寿司': '2026-11-10 12:00', 'Ｑ＆Ｓ': '2026-11-23 12:00', '北斗': '2026-11-24 12:00', '仲根工業': '2026-11-24 13:00', 'はやき': '2026-11-24 14:00' };
+  Object.keys(at).forEach(function (nm) { k.submit({ keisai: nm, sat_hankyo: 4, sat_cost: 4 }); });
+  var rs = k.sheet().getSheetByName('responses');
+  for (var i = 1; i < rs.data.length; i++) rs.data[i][1] = at[String(rs.data[i][2])];
+  var kh = k.as('hirayama@k-create.co.jp'), ks = k.as('suda@k-create.co.jp');
+  var byName = function (who) { var m = {}; who.listRows().forEach(function (r) { m[r.keisai] = r; }); return m; };
+  kh.init(); var b0 = byName(kh);
+  ks.saveField(b0['しんそう一宮新生'].id, 'genre', 'クリニック'); // 1つでも入っていれば触らない
+  ks.claim(b0['モリ塗装'].id);                                     // 担当だけ先に決まっている
+  kh.removeRow(b0['仲根工業'].id);                                  // 削除した回答は対象外
+  throws(function () { k.store['kanri-一宮版-2026'].getSheetByName('26.11月号').getRange(2, 1).setValue('x'); }, /読み取り専用/, '偽の管理表は書き込めない（書いたらテストが落ちる）');
+
+  var res = ks.loadFromKanri(); // 管理者でなくても押せる
+  var b = byName(kh);
+  var koura = b['甲羅本店'];
+  ok(koura.month === '2026-11' && koura.media === '一宮・江南' && koura.price === 175000 && koura.genre === 'グルメ' && koura.size === '1/4P FO・1/2P AD', '複数の版: 媒体は「・」でつなぎ料金は合計・サイズも違えばつなぐ: ' + JSON.stringify([koura.month, koura.media, koura.price, koura.size]));
+  ok(koura.ownerEmail === 'seko@k-create.co.jp' && koura.ownerName === '瀬古 典子' && koura.claimedAt && koura.updated, '担当が空なら管理表の担当者（苗字）から名簿の人を入れる');
+  ok(koura.price !== 99999 && koura.price !== 300000, '前の号（10月）・回答日より後の号（12月）は使わない');
+  var sm = b['（株）スクール・メイカー'];
+  ok(sm.genre === 'スクール' && sm.size === '1P' && sm.price === 225000 && sm.media === '一宮', '「_」で区切った部分と一致・（株）や記号をそろえて比べる・1 → 1P: ' + JSON.stringify([sm.genre, sm.size, sm.price]));
+  ok(!b['甲羅'].month && !b['甲羅'].media && res.notFound.some(function (x) { return x.keisai === '甲羅'; }), '店名の一部だけ（甲羅）では当てない');
+  var sh2 = b['しんそう一宮新生'];
+  ok(sh2.genre === 'クリニック' && !sh2.month && !sh2.size && sh2.price === '' && sh2.ownerEmail === 'suda@k-create.co.jp', '1つでも入っている回答は上書きしない');
+  var mori = b['モリ塗装'];
+  ok(mori.ownerEmail === 'suda@k-create.co.jp' && mori.size === '1/2P AD' && mori.price === 140400, '担当が入っている回答は担当を変えない（ほかの項目は入る）');
+  ok(!res.partial.some(function (x) { return x.keisai === 'モリ塗装'; }), '担当が入っている回答には担当の注意を出さない');
+  var wd = b['わんだーらんど'];
+  ok(wd.month === '2026-09' && wd.size === '1/8P FO' && wd.price === 20000 && wd.media === '一宮', '回答日の月かそれより前で、いちばん新しい号を使う（後の26.11月号は使わない）: ' + wd.month);
+  ok(!b['弥助寿司'].month && res.notFound.some(function (x) { return x.keisai === '弥助寿司'; }), '回答日より後の号にしかない店は「見つからなかった」');
+  var qs = b['Ｑ＆Ｓ'], qp = res.partial.filter(function (x) { return x.keisai === 'Ｑ＆Ｓ'; })[0];
+  ok(qs.genre === '' && qs.size === '' && qs.month === '2026-11' && qs.price === 248000 && qp && qp.reasons.some(function (w) { return /求人/.test(w); }) && qp.reasons.some(function (w) { return /1\/3/.test(w); }), '候補にないジャンル・サイズは空のまま・理由を返す（料金は掲載料の列だけ）: ' + JSON.stringify(qp && qp.reasons));
+  var hk = b['北斗'];
+  ok(hk.price === 440000 && hk.size === '1P', '同じ版・同じ号に同じ店が2行 → 料金は合計: ' + hk.price);
+  ok(!b['仲根工業'].month && b['仲根工業'].price === '' && !res.filled.concat(res.partial, res.notFound).some(function (x) { return x.keisai === '仲根工業'; }), '削除した回答は対象外');
+  var hy = b['はやき'], hp = res.partial.filter(function (x) { return x.keisai === 'はやき'; })[0];
+  ok(hy.ownerEmail === '' && hy.size === '1/8P FO' && hp && /複数/.test(hp.reasons.join()), '担当者の苗字が名簿で1人に決まらなければ担当は空のまま');
+  ok(res.filled.length === 7 && res.notFound.length === 2 && res.targets === 9, '件数: 入れた' + res.filled.length + '・見つからない' + res.notFound.length + '・対象' + res.targets);
+  ok(res.filled.filter(function (x) { return x.keisai === '甲羅本店'; })[0].set.owner === '瀬古 典子', '結果に入れた中身（担当も）が出る');
+  ok(kanriSnap() === snap, '管理表は1文字も変わっていない');
+  var ich = k.store['kanri-一宮版-2026'];
+  ok(ich.getSheetByName('26.11月号').reads === 1 && !ich.getSheetByName('26.12月号').reads && !ich.getSheetByName('24.1月号').reads && !ich.getSheetByName('状況').reads && !ich.getSheetByName('営業一覧').reads, '号のタブは1回だけ読む・回答日より後の号・古すぎる号・ほかのタブは読まない');
+  ok(res.read.editions.join() === '一宮版,江南版,北区版' && res.read.tabs === 5, '読んだ版・タブ: ' + res.read.editions.join() + ' ' + res.read.tabs);
+  var res2 = ks.loadFromKanri();
+  ok(res2.filled.length === 0 && res2.targets === 2, '2回目は入れたものを触らない（対象' + res2.targets + '件）');
+  // 北区版（媒体の候補にない）だけにある店
+  var k2 = E.make();
+  K.build(k2.store, GasMock.Spreadsheet, K.FOLDER, { '一宮版': { '26.11月号': [] }, '北区版': { '26.11月号': [['瀬古', 'グルメ', '', 'きたく食堂', '1/4', 'フリー', '', '50,000']] } });
+  k2.submit({ keisai: 'きたく食堂', sat_hankyo: 4, sat_cost: 4 });
+  k2.sheet().getSheetByName('responses').data[1][1] = '2026-11-25 10:00';
+  var r2 = k2.as('seko@k-create.co.jp').loadFromKanri(), x2 = k2.as('seko@k-create.co.jp').listRows()[0];
+  ok(x2.media === '' && x2.month === '2026-11' && x2.genre === 'グルメ' && x2.price === 50000 && x2.size === '1/4P AD' && /北区版/.test(r2.partial[0].reasons.join()), '媒体の候補にない版（北区版）は媒体を空のまま・理由を返す');
+  // settings の kanri_folders が優先される・フォルダが開けなければ知らせる
+  var k3 = E.make(); k3.submit({ keisai: 'どこかの店', sat_hankyo: 4, sat_cost: 4 }); k3.as('hirayama@k-create.co.jp').init();
+  k3.sheet().getSheetByName('settings').appendRow(['kanri_folders', 'nosuchfolder']);
+  var r3 = k3.as('hirayama@k-create.co.jp').loadFromKanri();
+  ok(r3.filled.length === 0 && /フォルダを開けません/.test(r3.warn.join()) && /見つかりません/.test(r3.warn.join()), '管理表が見つからないときは知らせる: ' + r3.warn.join(' / '));
+})();
+
 console.log((fail ? 'FAIL ' : 'ALL OK ') + (n - fail) + '/' + n);
 process.exit(fail ? 1 : 0);

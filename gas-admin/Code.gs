@@ -259,3 +259,201 @@ function saveMaster(kind, list) {
     return vals;
   });
 }
+
+// ---------- 情報読込（管理表から担当の情報を入れる・2026-11-25） ----------
+// 「情報読込」ボタンを押したときだけ動く。会社の管理表（Google ドライブ）を読むだけで、管理表には一切書き込まない。
+// 対象: 削除されていない回答のうち、ジャンル・掲載号・媒体・サイズ・料金が「全部」空のものだけ（1つでも入っていれば触らない）。
+// 比べ方: 回答の掲載名と、管理表の客先（掲載店）の全体、または「_」で区切った部分が同じなら当たり（部分一致はしない）。
+// 号: 回答日の月と同じか、それより前で、いちばん新しい号（回答日より後の号は使わない）。
+// 担当は空のときだけ、管理表の担当者（苗字）から名簿の人を探して入れる（1人に決まらなければ空のまま）。
+//
+// ■ 来年度の管理表を足すには
+//   管理表のフォルダ（例: ケイ・クリエイト管理表 / 41期管理表）を開き、URL の最後の英数字（フォルダID）を
+//   下の KANRI_FOLDERS に1行足して反映する。
+//   （または反響事例管理データの settings シートに key=kanri_folders、value=フォルダID（複数はカンマ区切り）を入れると、そちらが優先されます）
+//   フォルダの中の「管理表_〇〇版_2026年度」の形の名前のスプレッドシートを自動で探し、号のタブ（26.11月号 など）も自動で見つけます。
+var KANRI_FOLDERS = [
+  '1P0O2GILxD9TaSEEDehaXK5zwRu8H_KUs' // 40期管理表（2026年度）
+];
+var KANRI_FILE_RE = /管理表_(.+?版)_(\d{4})年度/;
+var KANRI_TAB_RE = /^\s*(\d{2})\s*[.．]\s*(\d{1,2})\s*月号\s*$/;
+var KANRI_LOOKBACK = 18; // 回答日の月から何か月前の号まで探すか（その月を含む）
+var KANRI_TIME_LIMIT = 270000; // 管理表を読むのに4分半を超えたら、何も入れずに止める（Apps Script は6分で止まるため）
+
+// 名前の比べ方: 全角半角・大文字小文字をそろえ、空白・記号・会社の種類（株式会社など）を取る
+function kanriNorm_(s) {
+  var t = String(s == null ? '' : s).normalize('NFKC').toLowerCase();
+  t = t.replace(/株式会社|有限会社|合同会社|合資会社|合名会社|一般社団法人|一般財団法人|社会福祉法人|医療法人社団|医療法人|\(株\)|\(有\)|\(同\)/g, '');
+  return t.replace(/[\s・ー‐\-－―─~〜「」『』()（）\[\]【】〈〉《》<>、。,.，．'"’”&＆!！?？\/／:：;；+＋*＊#＃]/g, '');
+}
+// 客先（掲載店）の名前の候補: 全体と「_」で区切った各部分（例: 甲羅本店_サカエ商事 → 甲羅本店／サカエ商事）
+function kanriKeys_(customer) {
+  var raw = String(customer || '').normalize('NFKC'), out = [];
+  var add = function (x) { var k = kanriNorm_(x); if (k && out.indexOf(k) < 0) out.push(k); };
+  add(raw); raw.split('_').forEach(add);
+  return out;
+}
+// タブ名 26.11月号 → 2026-11（アプリの掲載号の形。画面では 2026年11月号 と出る）
+function kanriTabMonth_(name) {
+  var m = KANRI_TAB_RE.exec(String(name || '').normalize('NFKC'));
+  if (!m || +m[2] < 1 || +m[2] > 12) return '';
+  return '20' + m[1] + '-' + ('0' + m[2]).slice(-2);
+}
+function kanriAddMonths_(ym, n) { var y = +ym.slice(0, 4), m = +ym.slice(5, 7) - 1 + n; y += Math.floor(m / 12); m = ((m % 12) + 12) % 12; return y + '-' + ('0' + (m + 1)).slice(-2); }
+// サイズ＋フリー/定型 → アプリのサイズ（1/2＋フリー → 1/2P AD、1/4＋定型 → 1/4P FO、1 → 1P）。候補になければ ''
+function kanriSize_(size, type, sizes) {
+  var s = String(size || '').normalize('NFKC').replace(/\s/g, '').replace(/(p|ページ)$/i, '');
+  if (!s) return '';
+  var base = s + 'P', t = String(type || '').normalize('NFKC'), sfx = /フリー/.test(t) ? 'AD' : /定型/.test(t) ? 'FO' : '';
+  if (sfx && sizes.indexOf(base + ' ' + sfx) >= 0) return base + ' ' + sfx;
+  if (sizes.indexOf(base) >= 0) return base; // 1P・2P・3/5P など、AD/FO の区別がないもの
+  return '';
+}
+// 見出しの行から列を探す（見つからなければ決まった位置: A担当者 B掲載ジャンル D客先 E サイズ F フリー/定型 H 掲載料）
+// 実物の見出し（2026-11-25 確認）: 担当者 / 掲載ジャンル / 掲載場所 / 客先（掲載店） / サイズ / フリー定型 / 制作料 / 掲載料 …
+function kanriCols_(head) {
+  var h = head.map(function (v) { return String(v || '').normalize('NFKC').replace(/\s/g, ''); });
+  var find = function (re, def) { for (var i = 0; i < h.length; i++) if (re.test(h[i])) return i; return def; };
+  return { owner: find(/担当/, 0), genre: find(/ジャンル/, 1), customer: find(/客先|掲載店/, 3), size: find(/サイズ/, 4), type: find(/フリー|定型/, 5), price: find(/掲載料|金額/, 7) };
+}
+// 1つのタブを読む（表示どおりの文字で読む＝1/2 が日付に化けない）
+function kanriReadTab_(sh) {
+  var v = sh.getDataRange().getDisplayValues(), hr = -1;
+  for (var i = 0; i < Math.min(v.length, 5); i++) if (v[i].some(function (x) { return /客先|掲載店/.test(String(x)); })) { hr = i; break; }
+  if (hr < 0) hr = 0; // 見出しが見つからなくても1行目は見出しとみなす
+  var c = kanriCols_(v[hr] || []), out = [];
+  for (var r = hr + 1; r < v.length; r++) {
+    var row = v[r], cust = String(row[c.customer] || '').trim();
+    if (!cust) continue;
+    var p = String(row[c.price] || '').normalize('NFKC').replace(/[^\d.]/g, '');
+    out.push({ owner: String(row[c.owner] || '').trim(), genre: String(row[c.genre] || '').normalize('NFKC').trim(), customer: cust, keys: kanriKeys_(cust),
+      size: String(row[c.size] || '').trim(), type: String(row[c.type] || '').trim(), price: p === '' || isNaN(Number(p)) ? null : Math.round(Number(p)) });
+  }
+  return out;
+}
+// 管理表のファイル一覧（版の名前・ID）。来年度分はフォルダIDを足すだけ
+function kanriFiles_() {
+  var ids = (setting_('kanri_folders') || '').split(/[,\s]+/).filter(String);
+  if (!ids.length) ids = KANRI_FOLDERS;
+  var files = [], warn = [];
+  ids.forEach(function (fid) {
+    try {
+      var it = DriveApp.getFolderById(fid).getFiles();
+      while (it.hasNext()) {
+        var f = it.next(), m = KANRI_FILE_RE.exec(String(f.getName()).normalize('NFKC'));
+        if (m && f.getMimeType() === 'application/vnd.google-apps.spreadsheet') // Excel などの写しは読まない
+          files.push({ id: f.getId(), name: f.getName(), edition: m[1], year: +m[2] });
+      }
+    } catch (x) { warn.push('管理表のフォルダを開けませんでした（' + fid + '）'); }
+  });
+  files.sort(function (a, b) { return b.year - a.year; }); // 同じ版・同じ号が2つのファイルにあるときは新しい年度のほうを使う
+  return { files: files, warn: warn };
+}
+
+// 画面の「情報読込」ボタンから呼ぶ。ログインしている人ならだれでも押せる（空の項目を埋めるだけなので）
+function loadFromKanri() {
+  var me = myEmail_(); if (!me) throw new Error('会社のGoogleアカウントで開いてください');
+  if (!ss_().getSheetByName('admins')) setup_(); // 候補（ジャンル・媒体・サイズ）のシートがまだないとき
+  var t0 = Date.now();
+  var masters = { genres: col_('genres'), media: col_('media'), sizes: col_('sizes') };
+  var empty = function (o) { return !o.genre && !o.month && !o.media && !o.size && (o.price === '' || o.price == null); };
+  var targets = allRows_().filter(function (o) { return !o.deleted && empty(o); });
+  var res = { targets: targets.length, filled: [], partial: [], notFound: [], warn: [], read: { editions: [], tabs: 0 }, stopped: false };
+  if (!targets.length) return res;
+
+  // 読む号の範囲: いちばん古い回答の月の KANRI_LOOKBACK か月前 〜 いちばん新しい回答の月
+  var ams = targets.map(function (o) { return o.at.slice(0, 7); }).filter(function (m) { return /^\d{4}-\d{2}$/.test(m); }).sort();
+  if (!ams.length) { targets.forEach(function (o) { res.notFound.push({ id: o.id, keisai: o.keisai }); }); return res; }
+  var hi = ams[ams.length - 1], lo = kanriAddMonths_(ams[0], -(KANRI_LOOKBACK - 1));
+  // 版ごと・号ごとの行（1回の実行で1タブ1回だけ読む）
+  var fl = kanriFiles_(); res.warn = res.warn.concat(fl.warn);
+  if (!fl.files.length) { res.warn.push('管理表のファイルが見つかりませんでした'); return res; }
+  var data = {}, months = {}, eds = [];
+  fl.files.forEach(function (f) {
+    if (res.stopped) return;
+    try {
+      var ss = SpreadsheetApp.openById(f.id);
+      ss.getSheets().forEach(function (sh) {
+        if (res.stopped) return;
+        var ym = kanriTabMonth_(sh.getName());
+        if (!ym || ym < lo || ym > hi) return;
+        var key = f.edition + '|' + ym; if (data[key]) return;
+        if (Date.now() - t0 > KANRI_TIME_LIMIT) { res.stopped = true; return; }
+        data[key] = kanriReadTab_(sh); months[ym] = 1; res.read.tabs++;
+        if (eds.indexOf(f.edition) < 0) eds.push(f.edition);
+      });
+    } catch (x) { res.warn.push('「' + f.name + '」を開けませんでした'); }
+  });
+  // 途中までしか読めていないと、違う号を選んでしまうことがあるので、何も入れずに止める
+  if (res.stopped) { res.warn.push('管理表の読み込みに時間がかかりすぎたため、何も入れずに止めました。少し時間をおいてもう一度押してください'); return res; }
+  // 版の並び: アプリの媒体の候補の順（一宮版 → 一宮）。候補にない版はうしろ
+  var medOf = function (ed) { return String(ed).replace(/版$/, ''); };
+  var rank = function (ed) { var i = masters.media.indexOf(medOf(ed)); return i < 0 ? 999 : i; };
+  eds.sort(function (a, b) { return rank(a) - rank(b); });
+  res.read.editions = eds;
+  var mlist = Object.keys(months).sort().reverse();
+  var people = people_();
+
+  var plans = [];
+  targets.forEach(function (o) {
+    var key = kanriNorm_(o.keisai), am = o.at.slice(0, 7);
+    if (!key || !/^\d{4}-\d{2}$/.test(am)) { res.notFound.push({ id: o.id, keisai: o.keisai }); return; }
+    var from = kanriAddMonths_(am, -(KANRI_LOOKBACK - 1)), hit = null;
+    for (var i = 0; i < mlist.length && !hit; i++) {
+      var ym = mlist[i]; if (ym > am || ym < from) continue;
+      var per = [];
+      eds.forEach(function (ed) {
+        var rows = (data[ed + '|' + ym] || []).filter(function (r) { return r.keys.indexOf(key) >= 0; });
+        if (rows.length) per.push({ ed: ed, rows: rows });
+      });
+      if (per.length) hit = { ym: ym, per: per };
+    }
+    if (!hit) { res.notFound.push({ id: o.id, keisai: o.keisai }); return; }
+    var first = hit.per[0].rows[0], kv = { month: hit.ym }, why = [];
+    // 媒体（版が複数なら「・」でつなぐ。媒体の候補にない版は入れない）
+    var meds = [];
+    hit.per.forEach(function (p) { var m = medOf(p.ed); if (masters.media.indexOf(m) >= 0) meds.push(m); else why.push('媒体「' + p.ed + '」が媒体の候補にないため、媒体に入れていません'); });
+    if (meds.length) kv.media = meds.join('・');
+    // ジャンル（最初の版の行から）
+    if (masters.genres.indexOf(first.genre) >= 0) kv.genre = first.genre;
+    else why.push(first.genre ? 'ジャンル「' + first.genre + '」がジャンルの候補にないため、ジャンルは空のままです' : '管理表にジャンルが書かれていないため、ジャンルは空のままです');
+    // サイズ（版ごとに違えば「・」でつなぐ）
+    var szs = [], badSz = [];
+    hit.per.forEach(function (p) {
+      var r = p.rows[0], s = kanriSize_(r.size, r.type, masters.sizes), label = r.size + (r.type ? '（' + r.type + '）' : '');
+      if (s) { if (szs.indexOf(s) < 0) szs.push(s); } else if (badSz.indexOf(label) < 0) badSz.push(label);
+    });
+    if (badSz.length) why.push('サイズ「' + badSz.join('・') + '」に合うサイズの候補がないため、サイズは空のままです');
+    else if (szs.length) kv.size = szs.join('・');
+    // 料金（全部の版・全部の行の合計）
+    var sum = 0, noPrice = false;
+    hit.per.forEach(function (p) { p.rows.forEach(function (r) { if (r.price == null) noPrice = true; else sum += r.price; }); });
+    if (noPrice) why.push('管理表に金額が入っていない行があるため、料金は空のままです');
+    else if (sum > 999999999) why.push('料金が大きすぎるため、料金は空のままです');
+    else kv.price = String(sum);
+    // 担当（空のときだけ。苗字で名簿から1人に決まるときだけ）
+    var sur = kanriNorm_(first.owner), owner = null;
+    if (!o.ownerEmail) {
+      var cand = sur ? people.filter(function (p) { return kanriNorm_(String(p.name).split(/[\s　]/)[0]) === sur; }) : [];
+      if (cand.length === 1) owner = cand[0];
+      else why.push(!sur ? '管理表に担当者が書かれていないため、担当は空のままです' : '担当者「' + first.owner + '」' + (cand.length ? 'に当てはまる人が名簿に複数いる' : 'が名簿に見つからない') + 'ため、担当は空のままです');
+    }
+    plans.push({ o: o, kv: kv, owner: owner, why: why, customer: first.customer, editions: hit.per.map(function (p) { return p.ed; }) });
+  });
+
+  // 書き込み（ほかの人の保存とぶつからないようにロック。直前にもう一度「全部空か」を確かめる）
+  // 書くのは saveField と同じ responses の列（updated も更新）。担当を入れるときは claim と同じ owner_email・owner_name・claimed_at
+  withLock_(function () {
+    plans.forEach(function (pl) {
+      var f; try { f = findRow_(pl.o.id); } catch (x) { return; }
+      if (f.obj.deleted || !empty(f.obj)) return; // 読んでいる間にだれかが入れた → 触らない
+      var kv = {}, set = {};
+      ['genre', 'month', 'media', 'size', 'price'].forEach(function (k) { if (pl.kv[k] != null && pl.kv[k] !== '') { kv[k] = pl.kv[k]; set[k] = pl.kv[k]; } });
+      if (pl.owner && !f.obj.ownerEmail) { kv.owner_email = pl.owner.email; kv.owner_name = pl.owner.name; kv.claimed_at = now_(); set.owner = pl.owner.name; }
+      if (f.obj.ownerEmail) pl.why = pl.why.filter(function (w) { return !/^(担当者|管理表に担当者)/.test(w); });
+      if (Object.keys(set).length) { kv.updated = now_(); setCols_(f, kv); res.filled.push({ id: pl.o.id, keisai: pl.o.keisai, customer: pl.customer, editions: pl.editions, set: set }); }
+      if (pl.why.length) res.partial.push({ id: pl.o.id, keisai: pl.o.keisai, customer: pl.customer, reasons: pl.why });
+    });
+  });
+  return res;
+}

@@ -52,17 +52,34 @@ var ROWS = [
     ROWS.push([name, sh, hk, sc, rnd(3) ? ry : "", wants[rnd(wants.length)], i % 9 === 8 ? -1 : rnd(4), [g[0], months[rnd(months.length)], media[rnd(media.length)], sz[0], sz[1]]]);
   }
 })();
-var boot = '\n<script>\n' + esc(mock) + '\n</script>\n<script>\n(function () {\n'
+// 「情報読込」用の架空の管理表（担当なしの回答の店名で作る）。最後の1件はわざと載せない＝「見つからなかった」の見本、
+// 2件目はサイズ 1/3（フリー）＝候補にないサイズの見本、1件目は一宮版と江南版の両方に載せる＝媒体をつなぐ見本
+var KSPEC = (function () {
+  var none = ROWS.filter(function (x) { return x[6] < 0; }), sur = ['田中', '鈴木', '佐藤', '見本'], tabs = ['26.6月号', '26.7月号', '26.8月号', '26.9月号', '26.10月号', '26.11月号'];
+  var sizes = [['1/4', '定型', 25000], ['1/3', 'フリー', 40000], ['1/2', 'フリー', 60000], ['1/8', '定型', 12000], ['1/6', '定型', 18000]];
+  var genreOf = { 'ほっと訪問介護': '介護・福祉', '和菓子 つきみ': 'グルメ' };
+  var spec = { '一宮版': {}, '江南版': {} };
+  tabs.forEach(function (t) { spec['一宮版'][t] = []; spec['江南版'][t] = []; });
+  none.slice(0, -1).forEach(function (x, i) {
+    var sz = sizes[i % sizes.length], g = genreOf[x[0]] || (x[7] && x[7][0]) || 'その他', cust = x[0].replace(/\s/g, '') + (i % 2 ? '' : '_見本商事');
+    var row = [sur[i % sur.length], g, '', cust, sz[0], sz[1], '', sz[2].toLocaleString('en-US')];
+    tabs.forEach(function (t) { spec['一宮版'][t].push(row); if (i === 0) spec['江南版'][t].push(row); });
+  });
+  return spec;
+})();
+var kanriFx = fs.readFileSync(path.join(__dirname, 'kanri-fixture.js'), 'utf8');
+var boot = '\n<script>\n' + esc(mock) + '\n</script>\n<script>\n' + esc(kanriFx) + '\n</script>\n<script>\n(function () {\n'
   + 'var store = {}, SHEET_ID = "1w-4FIkRfEjiCEo6LwKKb8CoXMOvT7_c6ASFpVkrO3ks", QR = "1riYm2WOMEeZBq0Te6BsqBumQFvPji9oYuZa8c6_So0o";\n'
   + 'store[SHEET_ID] = new GasMock.Spreadsheet(SHEET_ID, "反響事例管理データ（サンプル）");\n'
   + 'var q = store[QR] = new GasMock.Spreadsheet(QR, "QR"), mem = q.insertSheet("members"); mem.appendRow(["email","name","prefix"]);\n'
   + 'var PEOPLE = ' + JSON.stringify(PEOPLE) + ', ROWS = ' + JSON.stringify(ROWS) + ';\n'
   + 'PEOPLE.forEach(function (p) { mem.appendRow([p[0], p[1], ""]); });\n'
+  + 'KanriFixture.build(store, GasMock.Spreadsheet, KanriFixture.FOLDER, ' + JSON.stringify(KSPEC) + ');\n'
   + 'function load(code, user, names) { var env = GasMock.makeEnv(store, { owner: "sample@k-create.co.jp", user: user }); env.SpreadsheetApp.getActiveSpreadsheet = function () { return store[SHEET_ID]; };\n'
   + '  env.HtmlService = {}; var keys = Object.keys(env).filter(function (k) { return /^[A-Za-z]/.test(k); });\n'
   + '  return new Function(keys.join(","), code + "\\n;return {" + names.map(function (n) { return n + ":" + n; }).join(",") + "};").apply(null, keys.map(function (k) { return env[k]; })); }\n'
   + 'var API = ' + JSON.stringify(apiCode) + ', ADMIN = ' + JSON.stringify(adminCode) + ';\n'
-  + 'var FNS = ["init","listRows","claim","release","assign","saveField","saveSales","removeRow","restoreRow","saveMaster","createMyForm","saveMyForm"];\n'
+  + 'var FNS = ["init","listRows","claim","release","assign","saveField","saveSales","removeRow","restoreRow","saveMaster","createMyForm","saveMyForm","loadFromKanri"];\n'
   + 'var api = load(API, "", ["doPost"]), me = load(ADMIN, PEOPLE[0][0], FNS); me.init();\n'
   + 'var ss = store[SHEET_ID]; ss.getSheetByName("admins").appendRow(["sample@k-create.co.jp"]);\n'
   + 'ss.getSheetByName("settings").appendRow(["form_url", "form.html"]);\n'

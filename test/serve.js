@@ -4,6 +4,11 @@ var http = require('http'), fs = require('fs'), path = require('path'), E = requ
 var port = Number(process.argv[2] || 8820), root = path.join(__dirname, '..');
 var t = E.make();
 if (process.argv.indexOf('--seed') >= 0) require('./seed.js')(t);
+// 架空の管理表（情報読込の画面確認用・店名と金額は架空）
+require('./kanri-fixture.js').build(t.store, require('./gas-mock.js').Spreadsheet, require('./kanri-fixture.js').FOLDER, {
+  '一宮版': { '26.10月号': [['瀬古', '介護・福祉', '', 'ほっと訪問介護_ほっとケア', '1/8', '定型', '', '18,000']], '26.11月号': [['瀬古', '介護・福祉', '', 'ほっと訪問介護_ほっとケア', '1/4', '定型', '', '25,000'], ['須田', 'グルメ', '', '和菓子つきみ', '1/3', 'フリー', '', '40,000']] },
+  '江南版': { '26.11月号': [['瀬古', '介護・福祉', '', 'ほっと訪問介護_ほっとケア', '1/4', '定型', '', '25,000']] }
+});
 
 var SHIM = '<script>window.google={script:{run:(function mk(ok,ng){return new Proxy({},{get:function(_,fn){'
   + 'if(fn==="withSuccessHandler")return function(f){return mk(f,ng);};if(fn==="withFailureHandler")return function(f){return mk(ok,f);};'

@@ -6,14 +6,14 @@
   Sheet.prototype.getName = function () { return this.name; };
   Sheet.prototype.getSheetId = function () { return this.gid || (this.gid = 1000 + Math.floor(Math.random() * 1e6)); };
   Sheet.prototype.setFrozenRows = function () { return this; };
-  Sheet.prototype.clear = function () { this.data = []; this.textCols = {}; this.fmt = {}; return this; };
+  Sheet.prototype.clear = function () { if (this.ro) throw new Error('読み取り専用のシートに書こうとしました: ' + this.name); this.data = []; this.textCols = {}; this.fmt = {}; return this; };
   Sheet.prototype.setColumnWidths = function () { return this; };
-  Sheet.prototype.setName = function (n) { this.name = n; return this; };
+  Sheet.prototype.setName = function (n) { if (this.ro) throw new Error('読み取り専用のシートに書こうとしました: ' + this.name); this.name = n; return this; };
   Sheet.prototype.getMaxRows = function () { return Math.max(this.data.length, 1000); };
   // 本物と同じく、最後の空の行は数えない（中身を消した行の下には書かない）
   Sheet.prototype.getLastRow = function () { for (var i = this.data.length - 1; i >= 0; i--) { var r = this.data[i] || []; for (var j = 0; j < r.length; j++) if (r[j] !== '' && r[j] !== undefined && r[j] !== null) return i + 1; } return 0; };
   Sheet.prototype.getLastColumn = function () { return this.data.reduce(function (m, r) { return Math.max(m, r.length); }, 0); };
-  Sheet.prototype.appendRow = function (r) { this.data[this.getLastRow()] = this._conv(r.slice(), 1); return this; }; // 本物と同じく最後の中身のある行の次に
+  Sheet.prototype.appendRow = function (r) { if (this.ro) throw new Error('読み取り専用のシートに書こうとしました: ' + this.name); this.data[this.getLastRow()] = this._conv(r.slice(), 1); return this; }; // 本物と同じく最後の中身のある行の次に
   // 書式が文字列でない列に yyyy-MM-dd を入れると Date になる（実物と同じ落とし穴を再現）
   Sheet.prototype._conv = function (row, c0) {
     var self = this;
@@ -22,6 +22,7 @@
       return v;
     });
   };
+  Sheet.prototype.getDataRange = function () { return new Range(this, 1, 1, Math.max(this.getLastRow(), 1), Math.max(this.getLastColumn(), 1)); };
   Sheet.prototype.getRange = function (a, c, nr, nc) {
     if (typeof a === 'string') {
       var m = /^([A-Z]+):([A-Z]+)$/.exec(a);
@@ -34,7 +35,10 @@
 
   function Range(sh, r, c, nr, nc, whole) { this.sh = sh; this.r = r; this.c = c; this.nr = nr; this.nc = nc; this.whole = whole; }
   Range.prototype.getRow = function () { return this.r; };
+  // 表示どおりの文字（管理表の読み込み用）。数値は 1,234 のようにカンマつき
+  Range.prototype.getDisplayValues = function () { return this.getValues().map(function (r) { return r.map(function (v) { return typeof v === 'number' ? v.toLocaleString('en-US') : String(v); }); }); };
   Range.prototype.getValues = function () {
+    this.sh.reads = (this.sh.reads || 0) + 1;
     var out = [];
     for (var i = 0; i < this.nr; i++) {
       var row = this.sh.data[this.r - 1 + i] || [];
@@ -45,6 +49,7 @@
     return out;
   };
   Range.prototype.setValues = function (vals) {
+    if (this.sh.ro) throw new Error('読み取り専用のシートに書こうとしました: ' + this.sh.name);
     for (var i = 0; i < vals.length; i++) {
       var row = this.sh.data[this.r - 1 + i] || (this.sh.data[this.r - 1 + i] = []);
       var cv = this.sh._conv(vals[i], this.c);
@@ -59,7 +64,7 @@
   Range.prototype.setDataValidation = function (rule) { this.sh.validation = this.sh.validation || {}; this.sh.validation[this.c] = rule; return this; };
   Range.prototype.clearContent = function () { var e = []; for (var i = 0; i < this.nr; i++) { var row = []; for (var j = 0; j < this.nc; j++) row.push(''); e.push(row); } return this.setValues(e); };
   Range.prototype.getValue = function () { return this.getValues()[0][0]; };
-  Range.prototype.setNumberFormat = function (f) { if (f === '@') for (var j = 0; j < this.nc; j++) this.sh.textCols[this.c + j] = true; return this; };
+  Range.prototype.setNumberFormat = function (f) { if (this.sh.ro) throw new Error('読み取り専用のシートに書こうとしました: ' + this.sh.name); if (f === '@') for (var j = 0; j < this.nc; j++) this.sh.textCols[this.c + j] = true; return this; };
   Range.prototype.createTextFinder = function (text) {
     var self = this, entire = false;
     var tf = {
@@ -84,7 +89,9 @@
   Spreadsheet.prototype.insertSheet = function (n) { var s = new Sheet(n); this.sheets.push(s); return s; };
   Spreadsheet.prototype.deleteSheet = function (s) { this.sheets.splice(this.sheets.indexOf(s), 1); };
   Spreadsheet.prototype.getSheets = function () { return this.sheets.slice(); };
-  Sheet.prototype.deleteRow = function (r) { this.data.splice(r - 1, 1); return this; };
+  // 読み取り専用にする（管理表のテスト用）。書こうとするとエラー
+  Spreadsheet.prototype.freeze = function () { var self = this; this.ro = true; this.sheets.forEach(function (s) { s.ro = true; }); ['insertSheet', 'deleteSheet', 'setSpreadsheetTimeZone'].forEach(function (k) { self[k] = function () { throw new Error('読み取り専用のスプレッドシートに書こうとしました: ' + self.name); }; }); return this; };
+  Sheet.prototype.deleteRow = function (r) { if (this.ro) throw new Error('読み取り専用のシートに書こうとしました: ' + this.name); this.data.splice(r - 1, 1); return this; };
 
   function pad(n) { return ('0' + n).slice(-2); }
   function lock_() { return { waitLock: function () {}, tryLock: function () { return true; }, releaseLock: function () {} }; }
@@ -133,6 +140,11 @@
           .replace('HH', pad(t.getUTCHours())).replace('mm', pad(t.getUTCMinutes())).replace('ss', pad(t.getUTCSeconds()));
       } },
       LockService: { getScriptLock: lock_, getUserLock: lock_ },
+      // ドライブのフォルダ（読むだけ）。store._folders = { フォルダID: [スプレッドシートID, …] }
+      DriveApp: { getFolderById: function (id) {
+        var ids = (store._folders || {})[id]; if (!ids) throw new Error('no folder ' + id);
+        return { getFiles: function () { var i = 0; return { hasNext: function () { return i < ids.length; }, next: function () { var ss = store[ids[i++]]; return { getId: function () { return ss.id; }, getName: function () { return ss.name; }, getMimeType: function () { return ss.mime || 'application/vnd.google-apps.spreadsheet'; } }; } }; } };
+      } },
       // 全員共通のキャッシュ（本物は最長6時間・1件100KB）。env.cache で中身を見られる
       cache: {},
       CacheService: { getScriptCache: function () { return {
