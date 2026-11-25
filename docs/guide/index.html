@@ -1,0 +1,480 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>反響事例管理 使い方ガイド</title>
+<style>
+  :root { --text: #0f172a; --muted: #475569; --faint: #94a3b8; --line: #e2e8f0; --bg: #f1f5f9; --card: #fff; --accent: #2563eb; --accent-weak: #eff6ff; --warn: #fff7ed; --warn-text: #9a3412; --side: #0f172a; }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; scroll-padding-top: 16px; }
+  body { margin: 0; background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic UI", "Yu Gothic", Meiryo, sans-serif; font-size: 15.5px; line-height: 1.8; }
+  a { color: var(--accent); }
+  header.top { background: var(--side); color: #fff; padding: 28px 16px 26px; }
+  header.top .in { max-width: 1120px; margin: 0 auto; }
+  header.top h1 { margin: 0 0 6px; font-size: 26px; letter-spacing: .02em; }
+  header.top p { margin: 0; color: #cbd5e1; font-size: 14.5px; }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 24px 16px 60px; display: grid; grid-template-columns: 240px minmax(0, 1fr); gap: 32px; align-items: start; }
+  nav.toc { position: sticky; top: 16px; background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 14px 10px; max-height: calc(100vh - 32px); overflow: auto; }
+  nav.toc b { display: block; font-size: 12px; color: var(--muted); padding: 0 8px 6px; letter-spacing: .05em; }
+  nav.toc a { display: block; padding: 5px 8px; border-radius: 6px; color: var(--text); text-decoration: none; font-size: 14px; line-height: 1.5; }
+  nav.toc a:hover { background: var(--accent-weak); color: var(--accent); }
+  main { min-width: 0; }
+  section { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 24px 26px; margin-bottom: 22px; }
+  h2 { margin: 0 0 14px; font-size: 21px; padding-bottom: 10px; border-bottom: 2px solid var(--accent-weak); display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  h2 .no { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 8px; background: var(--accent); color: #fff; font-size: 15px; flex: none; }
+  h3 { margin: 22px 0 8px; font-size: 17px; }
+  p { margin: 0 0 12px; }
+  ul, ol { margin: 0 0 14px; padding-left: 1.4em; }
+  li { margin-bottom: 4px; }
+  .note { background: var(--accent-weak); border-left: 4px solid var(--accent); border-radius: 8px; padding: 10px 14px; margin: 12px 0 16px; font-size: 14.5px; }
+  .warn { background: var(--warn); border-left: 4px solid #f97316; color: var(--warn-text); border-radius: 8px; padding: 10px 14px; margin: 12px 0 16px; font-size: 14.5px; }
+  .key { display: inline-block; border: 1px solid #cbd5e1; border-bottom-width: 2px; border-radius: 6px; padding: 0 7px; font-size: 13px; background: #fff; line-height: 1.6; white-space: nowrap; }
+  table { border-collapse: collapse; width: 100%; margin: 6px 0 16px; font-size: 14.5px; }
+  th, td { border: 1px solid var(--line); padding: 7px 10px; text-align: left; vertical-align: top; }
+  th { background: #f8fafc; font-weight: 700; white-space: nowrap; }
+  .tbl { overflow-x: auto; }
+  .flow { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 8px 0 16px; padding: 0; list-style: none; }
+  .flow li { background: var(--accent-weak); border: 1px solid #bfdbfe; border-radius: 10px; padding: 6px 12px; margin: 0; font-weight: 600; font-size: 14px; }
+  .flow li + li::before { content: "→"; color: var(--faint); margin: 0 8px 0 -2px; font-weight: 400; }
+  .faq dt { font-weight: 700; margin-top: 14px; }
+  .faq dt::before { content: "Q. "; color: var(--accent); }
+  .faq dd { margin: 4px 0 0; padding-left: 1.6em; }
+  footer { text-align: center; color: var(--faint); font-size: 12.5px; padding: 10px 16px 30px; }
+  /* demo-css:start */
+  /* 動きで見る（ポインターが次に押す場所へ動く）: guide/build-demos.js が index.html に入れる。ここを直したら build-demos.js を実行 */
+  .demo { display: flex; gap: 22px; align-items: flex-start; flex-wrap: wrap; margin: 10px 0 22px; padding: 16px; background: #f8fafc; border: 1px solid var(--line); border-radius: 12px; }
+  .demo.wide { display: block; }
+  .demo .stage { position: relative; flex: 0 0 auto; max-width: 100%; }
+  .demo.wide .stage { margin: 0 auto; }
+  .demo .stage img { display: block; width: 100%; height: auto; border: 1px solid var(--line); border-radius: 10px; background: #fff; box-shadow: 0 2px 10px rgba(15, 23, 42, .06); transition: opacity .18s; }
+  .demo .stage img.fade { opacity: 0; }
+  .demo .ptr { position: absolute; left: 50%; top: 50%; width: 30px; height: 30px; margin: -2.5px 0 0 -5px; pointer-events: none; z-index: 5; transition: left .9s cubic-bezier(.45,.05,.3,1), top .9s cubic-bezier(.45,.05,.3,1), transform .15s, opacity .2s; filter: drop-shadow(0 2px 3px rgba(0,0,0,.35)); }
+  .demo .ptr svg { display: block; }
+  .demo .ptr.press { transform: scale(.82); }
+  .demo .ptr.drag { transition-duration: 1.1s; }
+  .demo .ring { position: absolute; width: 44px; height: 44px; margin: -22px 0 0 -22px; border-radius: 50%; border: 3px solid var(--accent); opacity: 0; pointer-events: none; z-index: 3; }
+  .demo .ring.go { animation: demoRing .7s ease-out; }
+  @keyframes demoRing { from { transform: scale(.3); opacity: .9; } to { transform: scale(1.3); opacity: 0; } }
+  .demo .hl { position: absolute; z-index: 2; border: 3px solid var(--accent); border-radius: 8px; background: rgba(37, 99, 235, .10); box-shadow: 0 0 0 4px rgba(37, 99, 235, .18); pointer-events: none; opacity: 0; transition: left .6s, top .6s, width .6s, height .6s, opacity .25s; }
+  .demo .hl.on { opacity: 1; }
+  .demo .badge { position: absolute; z-index: 6; min-width: 26px; height: 26px; padding: 0 7px; border-radius: 13px; background: var(--accent); color: #fff; font: 700 13px/26px system-ui, sans-serif; text-align: center; box-shadow: 0 2px 6px rgba(0,0,0,.25); transform: translate(14px, 14px); transition: left .9s cubic-bezier(.45,.05,.3,1), top .9s cubic-bezier(.45,.05,.3,1), opacity .2s; pointer-events: none; }
+  .demo .typing { position: absolute; z-index: 4; max-width: 92%; padding: 5px 10px; border-radius: 8px; background: #0f172a; color: #fff; font: 600 13px/1.5 system-ui, sans-serif; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; box-shadow: 0 3px 10px rgba(0,0,0,.25); pointer-events: none; opacity: 0; transition: opacity .2s; }
+  .demo .typing.on { opacity: 1; }
+  .demo .typing::before { content: "⌨ "; opacity: .8; }
+  .demo .typing::after { content: ""; display: inline-block; width: 2px; height: 1em; margin-left: 2px; background: #93c5fd; vertical-align: -2px; animation: demoCaret .8s steps(1) infinite; }
+  @keyframes demoCaret { 50% { opacity: 0; } }
+  .demo.instant .ptr, .demo.instant .badge, .demo.instant .hl, .demo.instant .stage img { transition: none !important; }
+  .demo .side { flex: 1 1 240px; min-width: 0; }
+  .demo.wide .side { margin-top: 14px; }
+  .demo .side h4 { margin: 0 0 8px; font-size: 15px; }
+  .demo ol.steps { margin: 0 0 12px; padding: 0; list-style: none; counter-reset: st; }
+  .demo.wide ol.steps { columns: 2; column-gap: 12px; }
+  .demo ol.steps li { counter-increment: st; position: relative; padding: 7px 10px 7px 40px; margin: 0 0 4px; border-radius: 8px; color: var(--muted); transition: background .3s, color .3s; font-size: 14.5px; line-height: 1.55; break-inside: avoid; cursor: pointer; }
+  .demo ol.steps li::before { content: counter(st); position: absolute; left: 10px; top: 7px; width: 22px; height: 22px; border-radius: 50%; background: #e2e8f0; color: var(--muted); font: 700 12px/22px system-ui, sans-serif; text-align: center; transition: background .3s, color .3s; }
+  .demo ol.steps li.on { background: var(--accent-weak); color: var(--text); font-weight: 700; }
+  .demo ol.steps li.on::before { background: var(--accent); color: #fff; }
+  .demo ol.steps li.done::before { background: #bfdbfe; color: #1e40af; }
+  .demo .ctl { display: flex; gap: 8px; }
+  .demo .ctl button { font: inherit; font-size: 13px; border: 1px solid var(--line); background: #fff; border-radius: 8px; padding: 5px 12px; cursor: pointer; color: var(--text); }
+  .demo .ctl button:hover { border-color: var(--accent); color: var(--accent); }
+  .demo .now { display: none; flex: 1 1 100%; margin-top: -12px; padding: 8px 10px; border-radius: 8px; background: var(--accent-weak); border-left: 4px solid var(--accent); font-size: 14px; font-weight: 700; line-height: 1.5; min-height: 2.6em; }
+  .demo.wide .now { margin-top: 8px; }
+  @media (max-width: 860px) { .demo .now { display: block; } .demo.wide ol.steps { columns: 1; } } /* スマホ: 手順の一覧は写真の下なので、今の手順を写真のすぐ下にも出す */
+  @media (max-width: 860px) { .demo { padding: 10px; gap: 14px; } }
+  @media (prefers-reduced-motion: reduce) { .demo .ptr, .demo .badge, .demo .hl { transition: none; } .demo .ring.go { animation: none; } }
+  /* demo-css:end */
+  @media (max-width: 860px) {
+    .wrap { grid-template-columns: minmax(0, 1fr); gap: 16px; padding-top: 16px; }
+    nav.toc { position: static; max-height: none; columns: 2; column-gap: 8px; }
+    nav.toc b { column-span: all; }
+    nav.toc a { break-inside: avoid; }
+    section { padding: 18px 16px; border-radius: 12px; }
+    header.top h1 { font-size: 22px; }
+    h2 { font-size: 19px; }
+    body { font-size: 15px; }
+    th { white-space: normal; }
+  }
+  @media (max-width: 420px) { nav.toc { columns: 1; } }
+</style>
+</head>
+<body>
+<header class="top"><div class="in">
+  <h1>反響事例管理 使い方ガイド</h1>
+  <p>お客様アンケートと、社内の管理サイトの使い方です。画面の写真はサンプル（架空のお店・架空の人）です。</p>
+</div></header>
+
+<div class="wrap">
+<nav class="toc" aria-label="目次">
+  <b>目次</b>
+  <a href="#start">1. はじめに</a>
+  <a href="#send">2. アンケートを送る</a>
+  <a href="#form">3. お客様が答える画面</a>
+  <a href="#list">4. 回答を見る</a>
+  <a href="#claim">5. 自分の担当にする</a>
+  <a href="#input">6. 担当の情報を入れる</a>
+  <a href="#stats">7. 分析・事例を見る</a>
+  <a href="#faq">8. 困ったとき</a>
+</nav>
+<main>
+
+<section id="start">
+  <h2><span class="no">1</span>はじめに</h2>
+<!-- demo:tour -->
+  <h3>動きで見る：画面の見かた</h3>
+  <div class="demo" data-demo="tour">
+    <div class="stage" style="width:1280px"><img src="img/demo-tour.png" alt="管理サイトの画面" width="1280" height="920" loading="lazy"></div>
+    <div class="side"><h4>ここを見ます</h4><ol class="steps"></ol><div class="ctl"><button type="button" data-act="pause">一時停止</button><button type="button" data-act="again">最初から</button></div></div>
+    <script type="application/json">{"images":[{"src":"img/demo-tour.png","w":1280,"h":920,"dw":1280,"alt":"管理サイトの画面"}],"steps":[{"img":0,"x":9.4,"y":12.1,"t":"「未割り当て」… まだ担当が決まっていない回答。赤い数字は件数です","box":{"x":0.8,"y":10,"w":17.2,"h":4.3},"look":{"x":0.5,"y":9.5,"w":17.8,"h":5.2}},{"img":0,"x":9.4,"y":16.6,"t":"「一覧」… 全社の回答を全部見られます","box":{"x":0.8,"y":14.5,"w":17.2,"h":4.3},"look":{"x":0.5,"y":14.1,"w":17.8,"h":5.2}},{"img":0,"x":9.4,"y":21.2,"t":"「分析」… 満足度の平均や内訳を、ジャンル別・媒体別などでくらべます","box":{"x":0.8,"y":19,"w":17.2,"h":4.3},"look":{"x":0.5,"y":18.6,"w":17.8,"h":5.2}},{"img":0,"x":9.4,"y":25.7,"t":"「事例」… 反響がよかった回答だけを集めたページです","box":{"x":0.8,"y":23.5,"w":17.2,"h":4.3},"look":{"x":0.5,"y":23.1,"w":17.8,"h":5.2}},{"img":0,"x":9.4,"y":30.2,"t":"「フォーム・設定」… お客様に渡すアンケートのURLとQRコード","box":{"x":0.8,"y":28.1,"w":17.2,"h":4.3},"look":{"x":0.5,"y":27.6,"w":17.8,"h":5.2}},{"img":0,"x":9.4,"y":51.1,"t":"自分の案件・担当者ごと・担当なし で分けて見られます（数字は件数）","box":{"x":0,"y":37.7,"w":18.8,"h":26.8},"look":{"x":-0.3,"y":37.2,"w":19.4,"h":27.7}},{"img":0,"x":9.4,"y":76.2,"t":"ほかの社内ツールへ移れます（新しいタブで開きます）","box":{"x":0,"y":64.5,"w":18.8,"h":23.5},"look":{"x":-0.3,"y":64,"w":19.4,"h":24.3}},{"img":0,"x":9.4,"y":90.6,"t":"このガイドを開きます","box":{"x":0.8,"y":88.7,"w":17.2,"h":3.8},"look":{"x":0.5,"y":88.2,"w":17.8,"h":4.7}},{"img":0,"x":9.4,"y":96.6,"t":"いま使っている人の名前です","box":{"x":0,"y":93.1,"w":18.8,"h":6.9},"look":{"x":-0.3,"y":92.7,"w":19.4,"h":7.8}}]}</script>
+  </div>
+<!-- /demo:tour -->
+  <p>掲載していただいたお客様に、<b>反響</b>や<b>費用の感じ方</b>をアンケートで答えていただき、社内で共有・分析するためのサイトです。</p>
+  <ul class="flow"><li>アンケートのURLを渡す</li><li>お客様が答える</li><li>担当を決める</li><li>ジャンル・掲載号などを入れる</li><li>分析・事例に活かす</li></ul>
+  <div class="tbl"><table>
+    <tr><th>お客様アンケート</th><td>お客様が答える画面です。スマホでもパソコンでも、社外から開けます。お客様のお名前や連絡先は聞きません（聞くのは掲載名だけです）。</td></tr>
+    <tr><th>管理サイト</th><td>社内の人だけが使う画面です。<b>会社のGoogleアカウント</b>で開きます（パスワードはありません）。</td></tr>
+    <tr><th>練習用のサンプル</th><td>架空のデータで、管理サイトを自由にさわれます。操作しても本物のデータは変わりません。→ <a href="../sample/" target="_blank" rel="noopener">サンプルを開く</a></td></tr>
+  </table></div>
+  <p>管理サイトの左のメニューで、ページを切り替えます。左下の <span class="key">使い方ガイド</span> を押すと、このページが開きます。スマホで開くと、メニューは画面の上に並びます。</p>
+  <h3>だれが何をできるか</h3>
+  <p>回答は<b>社内の全員が全部見られます</b>（不満やご要望も）。直せる人は次のとおりです。</p>
+  <div class="tbl"><table>
+    <tr><th>やること</th><th>できる人</th></tr>
+    <tr><td>回答を見る・探す・分析を見る</td><td>全員</td></tr>
+    <tr><td>担当が決まっていない回答を、自分の担当にする</td><td>全員</td></tr>
+    <tr><td>担当の情報（ジャンル・掲載号など）を入れる・直す</td><td>その回答の担当本人と、管理者</td></tr>
+    <tr><td>担当を付け替える・はずす・回答を削除する</td><td>その回答の担当本人と、管理者</td></tr>
+    <tr><td>削除した回答を元に戻す・ジャンルなどの選択肢を増やす</td><td>管理者だけ</td></tr>
+  </table></div>
+</section>
+
+<section id="send">
+  <h2><span class="no">2</span>アンケートを送る</h2>
+<!-- demo:myform -->
+  <h3>動きで見る：自分専用のアンケートを作って、URL・QRコードを渡す</h3>
+  <div class="demo" data-demo="myform">
+    <div class="stage" style="width:240px"><img src="img/demo-myform-side.png" alt="左のメニュー" width="240" height="310" loading="lazy"></div>
+    <div class="side"><h4>この順に押します</h4><ol class="steps"></ol><div class="ctl"><button type="button" data-act="pause">一時停止</button><button type="button" data-act="again">最初から</button></div></div>
+    <script type="application/json">{"images":[{"src":"img/demo-myform-side.png","w":240,"h":310,"dw":240,"alt":"左のメニュー"},{"src":"img/demo-myform-make.png","w":1004,"h":149,"dw":1004,"alt":"あなた専用のアンケート（作る前）"},{"src":"img/demo-myform-card.png","w":1004,"h":637,"dw":1004,"alt":"あなた専用のアンケート"}],"steps":[{"img":0,"x":50,"y":89.7,"t":"左のメニューの「フォーム・設定」を押します","box":{"x":4.2,"y":83.3,"w":91.7,"h":12.8}},{"img":1,"x":12.9,"y":69.4,"t":"「自分専用のアンケートを作る」を押します（最初の1回だけ）","box":{"x":2.9,"y":57.3,"w":20,"h":24.2}},{"img":2,"x":9.8,"y":24.2,"t":"あなた専用のQRコードができました","box":{"x":2.9,"y":13.4,"w":13.7,"h":21.7},"look":{"x":2.5,"y":12.8,"w":14.5,"h":22.9}},{"img":2,"x":57.8,"y":21.3,"t":"あなた専用のURLです（最後に「?t=」と英数字が付きます）","box":{"x":18.4,"y":19.6,"w":78.7,"h":3.3},"look":{"x":18,"y":19,"w":79.5,"h":4.5}},{"img":2,"x":23.2,"y":26.5,"t":"「URLをコピー」を押して、メールやLINEに貼って送ります","box":{"x":18.4,"y":24.1,"w":9.6,"h":4.7}},{"img":2,"x":34.3,"y":26.5,"t":"「QRを画像で保存」で、資料やチラシに貼れる画像を保存します","box":{"x":28.6,"y":24.1,"w":11.4,"h":4.7}},{"img":2,"x":11.9,"y":48.9,"t":"グレーの参考文を、自分のお客様向けに変えることもできます（空のままなら共通の文）","box":{"x":2.9,"y":46.1,"w":94.2,"h":9.9},"type":"問い合わせや予約が何件あったかなど"},{"img":2,"x":7.7,"y":93.4,"t":"変えたら「参考文を保存」を押します","box":{"x":2.9,"y":91,"w":9.7,"h":4.7}},{"img":2,"x":19.8,"y":93.4,"t":"「お客様の画面を見る」で、お客様に見える画面を確かめられます","box":{"x":13.1,"y":91,"w":13.4,"h":4.7}}]}</script>
+  </div>
+<!-- /demo:myform -->
+  <p>アンケートは2種類あります。どちらも、お客様に<b>URL か QRコード</b>を渡すだけです。左のメニューの「フォーム・設定」にあります。</p>
+  <div class="tbl"><table>
+    <tr><th>あなた専用のアンケート<br>（おすすめ）</th><td>ここから届いた回答は、最初から<b>あなたの担当</b>になります。「自分の担当にする」の手間がいりません。一覧では「専用」の印が付きます。</td></tr>
+    <tr><th>共通のアンケート</th><td>全社で1つのURLです。だれのお客様にも使えます。届いた回答は「未割り当て」に入るので、担当の人が「自分の担当にする」を押します（<a href="#claim">5章</a>）。</td></tr>
+  </table></div>
+  <p><span class="key">URLをコピー</span> で、メールやLINEにそのまま貼れます。<span class="key">QRを画像で保存</span> で、資料などに貼れるQRコードの画像を保存できます。</p>
+  <h3>参考文を変える</h3>
+  <p>お客様の画面の ②④⑤ の欄には、何を書けばよいか分かるように、グレーの参考文が出ています。あなた専用のアンケートでは、この参考文をあなたのお客様向けに変えられます（200文字まで）。欄を空にして保存すると、共通の参考文に戻ります。</p>
+  <div class="note">自分専用のアンケートは1人に1つです。URLはずっと同じなので、何人のお客様に渡してもかまいません。</div>
+</section>
+
+<section id="form">
+  <h2><span class="no">3</span>お客様が答える画面</h2>
+<!-- demo:form -->
+  <h3>動きで見る：お客様がスマホで答える流れ</h3>
+  <div class="demo" data-demo="form">
+    <div class="stage" style="width:300px"><img src="img/demo-form-top.png" alt="アンケート（上）" width="748" height="1424" loading="lazy"></div>
+    <div class="side"><h4>この順に押します</h4><ol class="steps"></ol><div class="ctl"><button type="button" data-act="pause">一時停止</button><button type="button" data-act="again">最初から</button></div></div>
+    <script type="application/json">{"images":[{"src":"img/demo-form-top.png","w":748,"h":1424,"dw":300,"alt":"アンケート（上）"},{"src":"img/demo-form-bottom.png","w":748,"h":1244,"dw":300,"alt":"アンケート（下）"},{"src":"img/demo-form-done.png","w":748,"h":868,"dw":300,"alt":"送信できた画面"}],"steps":[{"img":0,"x":25.4,"y":45.3,"t":"URLかQRコードから開くと、この画面です。掲載名を入れます（必須）","box":{"x":6.7,"y":41.8,"w":86.6,"h":6.9},"type":"〇〇整骨院"},{"img":0,"x":14.6,"y":64.3,"t":"① 反響の満足度を、5つから1つ選びます（必須）","box":{"x":6.7,"y":60.4,"w":15.7,"h":7.9}},{"img":0,"x":25.4,"y":83,"t":"② 具体的な反響（書かなくても送れます）。グレーの文は参考の例で、書き始めると消えます","box":{"x":6.7,"y":79.9,"w":86.6,"h":15.4},"type":"新規の予約が10件ありました"},{"img":1,"x":31.9,"y":14.2,"t":"③ 費用感の満足度を選びます（必須）","box":{"x":24,"y":9.7,"w":15.7,"h":9}},{"img":1,"x":25.4,"y":35.7,"t":"④ その理由（任意）","box":{"x":6.7,"y":32.1,"w":86.6,"h":17.7},"type":"反響のわりに手ごろだった"},{"img":1,"x":25.4,"y":67.9,"t":"⑤ ご要望（任意）","box":{"x":6.7,"y":64.3,"w":86.6,"h":17.7},"type":"次回も掲載したい"},{"img":1,"x":50,"y":94,"t":"「送信する」を押します","box":{"x":2.1,"y":89.4,"w":95.7,"h":9.1}},{"img":2,"x":50,"y":66.7,"t":"「ご協力ありがとうございました」と出たら完了です","box":{"x":6.7,"y":62.8,"w":86.6,"h":7.8},"look":{"x":4,"y":60.5,"w":92,"h":12.4}}]}</script>
+  </div>
+<!-- /demo:form -->
+  <p>質問は6つで、1〜2分ほどで終わります。確認の画面はなく、<span class="key">送信する</span> を押すとすぐに届きます。</p>
+  <div class="tbl"><table>
+    <tr><th>掲載名</th><td>必須</td></tr>
+    <tr><th>① 反響の満足度</th><td>必須。満足 ／ やや満足 ／ どちらともいえない ／ やや不満 ／ 不満 から1つ</td></tr>
+    <tr><th>② 具体的な反響</th><td>書かなくても送れます</td></tr>
+    <tr><th>③ 費用感の満足度</th><td>必須。①と同じ5つから1つ</td></tr>
+    <tr><th>④ その理由</th><td>書かなくても送れます</td></tr>
+    <tr><th>⑤ ご要望</th><td>書かなくても送れます</td></tr>
+  </table></div>
+  <p>必須の欄が空のまま送ろうとすると、その欄が赤い枠になり「入力されていない項目があります」と出ます。</p>
+  <div class="note">管理サイトを開いている間に届いた回答は、ページを開き直すと出てきます。</div>
+</section>
+
+<section id="list">
+  <h2><span class="no">4</span>回答を見る</h2>
+<!-- demo:list -->
+  <h3>動きで見る：回答を探す・絞り込む</h3>
+  <div class="demo" data-demo="list">
+    <div class="stage" style="width:240px"><img src="img/demo-list-side.png" alt="左のメニュー" width="240" height="590" loading="lazy"></div>
+    <div class="side"><h4>この順に押します</h4><ol class="steps"></ol><div class="ctl"><button type="button" data-act="pause">一時停止</button><button type="button" data-act="again">最初から</button></div></div>
+    <script type="application/json">{"images":[{"src":"img/demo-list-side.png","w":240,"h":590,"dw":240,"alt":"左のメニュー"},{"src":"img/demo-list-bar.png","w":1316,"h":78,"dw":1316,"alt":"探す・絞り込む"},{"src":"img/demo-list-table.png","w":1265,"h":343,"dw":1265,"alt":"回答の一覧（表）"}],"steps":[{"img":0,"x":50,"y":26,"t":"左のメニューの「一覧」を押します","box":{"x":4.2,"y":22.6,"w":91.7,"h":6.7}},{"img":0,"x":50,"y":67.1,"t":"自分の担当だけ見たいときは「自分の案件」。担当者ごとや「担当なし」でも分けられます","box":{"x":4.2,"y":64.3,"w":91.7,"h":5.6}},{"img":1,"x":6.5,"y":50,"t":"掲載名や、反響・要望に書かれた言葉で探せます","box":{"x":1.9,"y":26.9,"w":16.7,"h":46.2},"type":"クーポン"},{"img":1,"x":24.1,"y":50,"t":"ジャンルで絞り込み","box":{"x":19.2,"y":26.9,"w":9.7,"h":46.2}},{"img":1,"x":32.3,"y":50,"t":"媒体（何版か）で絞り込み","box":{"x":29.5,"y":26.9,"w":5.5,"h":46.2}},{"img":1,"x":40.7,"y":50,"t":"掲載号で絞り込み","box":{"x":35.6,"y":26.9,"w":10,"h":46.2}},{"img":1,"x":54.2,"y":50,"t":"反響の満足度・費用感の満足度でも絞り込めます","box":{"x":46.3,"y":26.9,"w":15.8,"h":46.2},"more":[{"x":71.1,"y":50}]},{"img":1,"x":90.2,"y":50,"t":"「カード」と「表」で見た目を切り替えられます","box":{"x":84.9,"y":26.9,"w":10.6,"h":46.2},"look":{"x":84.6,"y":21.8,"w":11.2,"h":56.4}},{"img":1,"x":97.1,"y":50,"t":"条件に合う件数です","box":{"x":96.1,"y":37.2,"w":2,"h":25.6},"look":{"x":95.8,"y":32.1,"w":2.6,"h":35.9}},{"img":2,"x":18.9,"y":79.8,"t":"反響と費用感の満足度が色で分かります（緑ほど満足）","box":{"x":16.8,"y":76.4,"w":4.3,"h":6.8},"look":{"x":16.4,"y":75.3,"w":4.9,"h":9.1}},{"img":2,"x":52.2,"y":55.5,"t":"「専用」の印は、担当者専用のアンケートから届いた回答です","box":{"x":51,"y":53.3,"w":2.5,"h":4.4},"look":{"x":50.7,"y":52.4,"w":2.9,"h":6.1}},{"img":2,"x":10.6,"y":79.8,"t":"行（掲載名のあたり）を押すと、回答の全文が見られます","box":{"x":4.8,"y":73.5,"w":11.5,"h":12.5}}]}</script>
+  </div>
+<!-- /demo:list -->
+<!-- demo:detail -->
+  <h3>動きで見る：回答の全文を見る・その場で直す</h3>
+  <div class="demo" data-demo="detail">
+    <div class="stage" style="width:640px"><img src="img/demo-detail.png" alt="回答の詳しい画面" width="880" height="962" loading="lazy"></div>
+    <div class="side"><h4>この順に押します</h4><ol class="steps"></ol><div class="ctl"><button type="button" data-act="pause">一時停止</button><button type="button" data-act="again">最初から</button></div></div>
+    <script type="application/json">{"images":[{"src":"img/demo-detail.png","w":880,"h":962,"dw":640,"alt":"回答の詳しい画面"}],"steps":[{"img":0,"x":50,"y":16.8,"t":"① 反響と ③ 費用感の満足度","box":{"x":4,"y":15.6,"w":92,"h":2.4},"look":{"x":3.5,"y":15.2,"w":93,"h":3.2}},{"img":0,"x":50,"y":32.9,"t":"② 具体的な反響・④ 理由・⑤ ご要望が、切れずに全部読めます","box":{"x":4,"y":19.9,"w":92,"h":26},"look":{"x":3.5,"y":19.5,"w":93,"h":26.8}},{"img":0,"x":33.5,"y":64.3,"t":"担当の情報。自分の担当の回答なら、ここで直せます（変えるとすぐ保存）","box":{"x":4,"y":50.2,"w":59.1,"h":28.1},"look":{"x":3.5,"y":49.8,"w":60,"h":28.9}},{"img":0,"x":10.8,"y":84.7,"t":"社内メモ（お客様には見えません）。書いて欄の外を押すと保存されます","box":{"x":4,"y":82.6,"w":92,"h":8.7},"type":"次回は春号で1/2ページを提案"},{"img":0,"x":6.6,"y":94.9,"t":"まちがい・テストの回答は「削除」（2回押します）","box":{"x":4,"y":93.4,"w":5.3,"h":3.1}},{"img":0,"x":8.9,"y":2.9,"t":"「← 回答一覧に戻る」で一覧に戻ります","box":{"x":1.1,"y":1,"w":15.6,"h":3.7}}]}</script>
+  </div>
+<!-- /demo:detail -->
+  <p>「一覧」には、全社の回答が<b>新しい順</b>に並びます。見た目は2つから選べます。どちらにしたかは、そのパソコン（スマホ）が覚えています。</p>
+  <div class="tbl"><table>
+    <tr><th>表</th><td>1行に1件。担当の情報を、その場で入れられます（<a href="#input">6章</a>）。パソコン向きです。</td></tr>
+    <tr><th>カード</th><td>1件ずつカードで並びます。②④⑤や社内メモも少し見えます（長い文は途中まで）。</td></tr>
+  </table></div>
+  <p>左のメニューの下のほうで、<b>全体 ／ 自分の案件 ／ 担当者ごと ／ 担当なし</b> に分けて見られます（スマホでは出ません）。</p>
+  <h3>回答の詳しい画面</h3>
+  <p>表の行（またはカード）を押すと、その回答の詳しい画面が開きます。お客様の文が切れずに全部読めます。自分の担当の回答なら、担当の情報や社内メモもここで直せます。</p>
+  <p>満足度の色は、緑が「満足」、灰色が「どちらともいえない」、赤が「不満」です。</p>
+  <div class="warn">「削除」は、まちがいやテストの回答を消すときに使います。押すと「もう一度押すと削除」に変わるので、もう一度押します。消した回答は、管理者なら元に戻せます。</div>
+</section>
+
+<section id="claim">
+  <h2><span class="no">5</span>自分の担当にする</h2>
+<!-- demo:claim -->
+  <h3>動きで見る：表で「自分の担当」にする</h3>
+  <div class="demo" data-demo="claim">
+    <div class="stage" style="width:240px"><img src="img/demo-claim-side.png" alt="左のメニュー" width="240" height="310" loading="lazy"></div>
+    <div class="side"><h4>この順に押します</h4><ol class="steps"></ol><div class="ctl"><button type="button" data-act="pause">一時停止</button><button type="button" data-act="again">最初から</button></div></div>
+    <script type="application/json">{"images":[{"src":"img/demo-claim-side.png","w":240,"h":310,"dw":240,"alt":"左のメニュー"},{"src":"img/demo-claim-todo.png","w":1316,"h":348,"dw":1316,"alt":"未割り当て"},{"src":"img/demo-claim-after.png","w":1316,"h":534,"dw":1316,"alt":"自分の担当になった"}],"steps":[{"img":0,"x":50,"y":36,"t":"左のメニューの「未割り当て」を押します（赤い数字が件数）","box":{"x":4.2,"y":29.6,"w":91.7,"h":12.8}},{"img":1,"x":47.1,"y":67.8,"t":"まだ担当が決まっていない回答が並びます","box":{"x":0.5,"y":49.3,"w":93.2,"h":37.1},"look":{"x":0.2,"y":48.1,"w":93.8,"h":39.4}},{"img":1,"x":46.8,"y":80.2,"t":"自分のお客様の回答なら、「担当」の欄を押して自分の名前を選びます","box":{"x":42.7,"y":75.9,"w":8.2,"h":8.6}},{"img":2,"x":50,"y":54.7,"t":"自分の担当になると、下の「担当の情報がまだの回答」に移ります","box":{"x":0.5,"y":52.6,"w":99.1,"h":4.2},"look":{"x":0.2,"y":51.9,"w":99.7,"h":5.7}},{"img":2,"x":57.6,"y":78.3,"t":"続けて、ジャンルや掲載号などを選びます（6章）","box":{"x":53.6,"y":75.5,"w":8,"h":5.6}}]}</script>
+  </div>
+<!-- /demo:claim -->
+<!-- demo:claimcard -->
+  <h3>動きで見る：カードの「自分の担当にする」ボタンで</h3>
+  <div class="demo" data-demo="claimcard">
+    <div class="stage" style="width:996px"><img src="img/demo-card-todo.png" alt="未割り当て（カード）" width="996" height="462" loading="lazy"></div>
+    <div class="side"><h4>この順に押します</h4><ol class="steps"></ol><div class="ctl"><button type="button" data-act="pause">一時停止</button><button type="button" data-act="again">最初から</button></div></div>
+    <script type="application/json">{"images":[{"src":"img/demo-card-todo.png","w":996,"h":462,"dw":996,"alt":"未割り当て（カード）"},{"src":"img/demo-card-dialog.png","w":520,"h":572,"dw":520,"alt":"担当の情報"}],"steps":[{"img":0,"x":90.5,"y":8.9,"t":"カードの見た目にしているときは…","box":{"x":83.5,"y":5,"w":14,"h":7.8},"look":{"x":83.1,"y":4.1,"w":14.8,"h":9.5}},{"img":0,"x":58.5,"y":92.1,"t":"「自分の担当にする」を押します","box":{"x":52.4,"y":88.8,"w":12.3,"h":6.5}},{"img":1,"x":50,"y":21.3,"t":"担当は自分になっています（あとから付け替えられます）","box":{"x":4.2,"y":18.1,"w":91.5,"h":6.3},"look":{"x":3.5,"y":17.4,"w":93.1,"h":7.7}},{"img":1,"x":26.5,"y":35.9,"t":"ジャンルを選びます","box":{"x":4.2,"y":32.8,"w":44.6,"h":6.3}},{"img":1,"x":73.5,"y":35.9,"t":"掲載号を選びます","box":{"x":51.2,"y":32.8,"w":44.6,"h":6.3}},{"img":1,"x":26.5,"y":48.5,"t":"媒体（何版か）を選びます","box":{"x":4.2,"y":45.4,"w":44.6,"h":6.3}},{"img":1,"x":73.5,"y":48.5,"t":"掲載サイズ・枠を選びます","box":{"x":51.2,"y":45.4,"w":44.6,"h":6.3}},{"img":1,"x":15.8,"y":61.1,"t":"掲載料金（税抜・円）を数字で入れます","box":{"x":4.2,"y":58,"w":91.5,"h":6.3},"type":"18000"},{"img":1,"x":15.8,"y":73.7,"t":"社内メモ（任意）","box":{"x":4.2,"y":70.6,"w":91.5,"h":12.2},"type":"次回は求人でも提案"},{"img":1,"x":88.1,"y":93.4,"t":"「保存する」を押して完了です","box":{"x":80.4,"y":90.2,"w":15.4,"h":6.3}}]}</script>
+  </div>
+<!-- /demo:claimcard -->
+<!-- demo:reassign -->
+  <h3>動きで見る：担当を付け替える・はずす</h3>
+  <div class="demo" data-demo="reassign">
+    <div class="stage" style="width:1252px"><img src="img/demo-reassign-before.png" alt="自分の案件" width="1252" height="266" loading="lazy"></div>
+    <div class="side"><h4>この順に押します</h4><ol class="steps"></ol><div class="ctl"><button type="button" data-act="pause">一時停止</button><button type="button" data-act="again">最初から</button></div></div>
+    <script type="application/json">{"images":[{"src":"img/demo-reassign-before.png","w":1252,"h":266,"dw":1252,"alt":"自分の案件"},{"src":"img/demo-reassign-after.png","w":1259,"h":174,"dw":1259,"alt":"付け替えたあと"}],"steps":[{"img":0,"x":50.1,"y":56.8,"t":"付け替えたい回答の「担当」の欄を押して、相手の名前を選びます","box":{"x":45.8,"y":51.1,"w":8.6,"h":11.3}},{"img":0,"x":50.1,"y":89.1,"t":"担当をはずすときは「担当なし」を選びます","box":{"x":45.8,"y":83.4,"w":8.6,"h":11.3}},{"img":1,"x":50.6,"y":62.3,"t":"田中さんの担当になりました。ほかの人の担当は文字だけになり、自分では直せません","box":{"x":45.8,"y":51.8,"w":9.5,"h":21},"look":{"x":45.5,"y":49.5,"w":10.1,"h":25.6}}]}</script>
+  </div>
+<!-- /demo:reassign -->
+  <p>共通のアンケートから届いた回答は、まだ担当が決まっていません。左のメニューの<b>「未割り当て」</b>に集まります（赤い数字が件数）。担当が決まっていない回答があるときは、サイトを開くと最初にこのページが出ます。</p>
+  <p>自分のお客様の回答を見つけたら、次のどれかで自分の担当にします。</p>
+  <ol>
+    <li>表の「担当」の欄で、自分の名前を選ぶ</li>
+    <li>表で、ジャンル・掲載号などのどれかを選ぶ（入れた人が担当になります）</li>
+    <li>カードの <span class="key">自分の担当にする</span> を押す（続けて担当の情報を入れる画面が開きます）</li>
+  </ol>
+  <div class="warn">担当が決まっていない回答を、<b>ほかの人の担当にできるのは管理者だけ</b>です。ほかの人のお客様の回答だと気づいたら、その人に声をかけてください。</div>
+  <h3>担当を付け替える・はずす</h3>
+  <p>担当本人は、「担当」の欄で名簿のだれにでも付け替えられます。「担当なし」を選ぶと、担当がはずれて「未割り当て」に戻ります。カードでは <span class="key">担当をはずす</span> でもはずせます。</p>
+  <p>ほかの人に付け替えると、その回答は自分では直せなくなります（直せるのは新しい担当と管理者です）。</p>
+</section>
+
+<section id="input">
+  <h2><span class="no">6</span>担当の情報を入れる</h2>
+<!-- demo:inline -->
+  <h3>動きで見る：表で、その場で項目を入れる</h3>
+  <div class="demo" data-demo="inline">
+    <div class="stage" style="width:240px"><img src="img/demo-inline-side.png" alt="左のメニュー" width="240" height="590" loading="lazy"></div>
+    <div class="side"><h4>この順に押します</h4><ol class="steps"></ol><div class="ctl"><button type="button" data-act="pause">一時停止</button><button type="button" data-act="again">最初から</button></div></div>
+    <script type="application/json">{"images":[{"src":"img/demo-inline-side.png","w":240,"h":590,"dw":240,"alt":"左のメニュー"},{"src":"img/demo-inline-table.png","w":1252,"h":266,"dw":1252,"alt":"自分の案件（表）"},{"src":"img/demo-inline-after.png","w":1252,"h":266,"dw":1252,"alt":"入れたあと"}],"steps":[{"img":0,"x":50,"y":67.1,"t":"「自分の案件」を押すと、自分の担当の回答だけになります","box":{"x":4.2,"y":64.3,"w":91.7,"h":5.6}},{"img":1,"x":59.5,"y":24.4,"t":"「（選ぶ）」の欄はまだ空です。押すと選択肢が出るので、選びます","box":{"x":55.3,"y":18.8,"w":8.4,"h":11.3}},{"img":1,"x":69,"y":24.4,"t":"掲載号","box":{"x":64.7,"y":18.8,"w":8.8,"h":11.3}},{"img":1,"x":77.6,"y":24.4,"t":"媒体","box":{"x":74.4,"y":18.8,"w":6.4,"h":11.3}},{"img":1,"x":85.9,"y":24.4,"t":"サイズ","box":{"x":81.7,"y":18.8,"w":8.4,"h":11.3}},{"img":1,"x":92.7,"y":24.4,"t":"料金は数字を入れて Enter（税抜・円）","box":{"x":91.1,"y":18.8,"w":7.3,"h":11.3},"type":"20000"},{"img":2,"x":50,"y":24.4,"t":"選ぶとすぐ保存されます（保存ボタンはありません）","box":{"x":0.6,"y":16.3,"w":98.8,"h":16.2},"look":{"x":0.6,"y":16.3,"w":98.8,"h":16.2}}]}</script>
+  </div>
+<!-- /demo:inline -->
+<!-- demo:copypaste -->
+  <h3>動きで見る：右クリックでコピー・貼り付け</h3>
+  <div class="demo" data-demo="copypaste">
+    <div class="stage" style="width:1252px"><img src="img/demo-cp-copy.png" alt="コピー" width="1252" height="336" loading="lazy"></div>
+    <div class="side"><h4>この順に押します</h4><ol class="steps"></ol><div class="ctl"><button type="button" data-act="pause">一時停止</button><button type="button" data-act="again">最初から</button></div></div>
+    <script type="application/json">{"images":[{"src":"img/demo-cp-copy.png","w":1252,"h":336,"dw":1252,"alt":"コピー"},{"src":"img/demo-cp-paste.png","w":1252,"h":336,"dw":1252,"alt":"貼り付け"},{"src":"img/demo-cp-done.png","w":1252,"h":336,"dw":1252,"alt":"貼り付けたあと"}],"steps":[{"img":0,"x":59.5,"y":32.1,"t":"値が入っている欄の上で、右クリックします","box":{"x":55.3,"y":27.7,"w":8.4,"h":8.9}},{"img":0,"x":67.4,"y":41.2,"t":"「コピー」を押します","box":{"x":59.8,"y":33.3,"w":15.2,"h":15.8}},{"img":1,"x":59.5,"y":32.1,"t":"コピーした欄は点線で囲まれます","box":{"x":55.3,"y":27.7,"w":8.4,"h":8.9},"look":{"x":55.1,"y":26.8,"w":8.9,"h":10.7}},{"img":1,"x":59.5,"y":19.3,"t":"貼りたい欄の上で、右クリックします","box":{"x":55.3,"y":14.9,"w":8.4,"h":8.9}},{"img":1,"x":67.4,"y":28.5,"t":"「ここに貼り付け」を押します","box":{"x":59.8,"y":20.5,"w":15.2,"h":15.8}},{"img":2,"x":59.5,"y":19.3,"t":"同じ値が入って、すぐ保存されます","box":{"x":55.3,"y":14.9,"w":8.4,"h":8.9},"look":{"x":55.1,"y":14,"w":8.9,"h":10.7}}]}</script>
+  </div>
+<!-- /demo:copypaste -->
+<!-- demo:copymulti -->
+  <h3>動きで見る：いくつかの欄にまとめて貼り付け</h3>
+  <div class="demo" data-demo="copymulti">
+    <div class="stage" style="width:1252px"><img src="img/demo-multi.png" alt="まとめて貼り付け" width="1252" height="356" loading="lazy"></div>
+    <div class="side"><h4>この順に押します</h4><ol class="steps"></ol><div class="ctl"><button type="button" data-act="pause">一時停止</button><button type="button" data-act="again">最初から</button></div></div>
+    <script type="application/json">{"images":[{"src":"img/demo-multi.png","w":1252,"h":356,"dw":1252,"alt":"まとめて貼り付け"},{"src":"img/demo-multi-done.png","w":1252,"h":356,"dw":1252,"alt":"まとめて貼り付けたあと"}],"steps":[{"img":0,"x":85.9,"y":30.3,"t":"先に、元の欄を右クリック →「コピー」しておきます（点線で囲まれます）","box":{"x":81.7,"y":26.1,"w":8.4,"h":8.4},"look":{"x":81.5,"y":25.3,"w":8.9,"h":10.1}},{"img":0,"x":85.9,"y":18.2,"t":"貼りたい欄の、いちばん上を押します","box":{"x":81.7,"y":14,"w":8.4,"h":8.4}},{"img":0,"x":85.9,"y":42.4,"t":"Shift キーを押しながら、いちばん下を押すと、縦にまとめて選べます（色が付きます）","box":{"x":81.7,"y":38.2,"w":8.4,"h":8.4}},{"img":0,"x":93.8,"y":51,"t":"選んだ欄の上で右クリック →「選んだ 3 か所に貼り付け」","box":{"x":86.3,"y":43.5,"w":15.2,"h":14.9}},{"img":1,"x":85.9,"y":30.3,"t":"選んだ欄に、まとめて入りました","box":{"x":81.7,"y":14,"w":8.4,"h":32.6},"look":{"x":81.5,"y":13.2,"w":8.9,"h":34.3}}]}</script>
+  </div>
+<!-- /demo:copymulti -->
+  <p>担当になったら、次の項目を入れます。分析や事例の絞り込みに使うので、なるべく全部入れてください。</p>
+  <div class="tbl"><table>
+    <tr><th>ジャンル</th><td>選択肢から選びます（グルメ、スクール、クリニック など）</td></tr>
+    <tr><th>掲載号</th><td>「2026年11月号」のように選びます。1年半前〜半年先まで出ます</td></tr>
+    <tr><th>媒体</th><td>何版か（一宮版、江南版 など）</td></tr>
+    <tr><th>掲載サイズ・枠</th><td>1/4P FO など</td></tr>
+    <tr><th>掲載料金</th><td>税抜の金額を、数字で入れます（円）。「30000」でも「30,000」でも大丈夫です</td></tr>
+    <tr><th>社内メモ</th><td>書かなくてもかまいません。お客様には見えません。詳しい画面か、カードのボタンから入れます</td></tr>
+  </table></div>
+  <p>表と詳しい画面では、<b>選んだらすぐ保存</b>されます（保存ボタンはありません）。料金は、数字を入れて <span class="key">Enter</span> を押すか、欄の外を押すと保存されます。カードの <span class="key">担当の情報を入れる</span> から入れたときは、最後に <span class="key">保存する</span> を押します。</p>
+  <h3>コピー・貼り付けのまとめ</h3>
+  <div class="tbl"><table>
+    <tr><th>1か所に貼る</th><td>元の欄を右クリック →「コピー」→ 貼りたい欄を右クリック →「ここに貼り付け」</td></tr>
+    <tr><th>まとめて貼る</th><td>貼りたい欄を選んでから右クリック。<span class="key">Shift</span>＋クリックで縦に続けて、<span class="key">Ctrl</span>＋クリックで1つずつ選べます（同じ列の中だけ）</td></tr>
+    <tr><th>やめる</th><td><span class="key">Esc</span> キー、または右クリック →「選択・コピーをやめる」</td></tr>
+    <tr><th>キーボードで</th><td><span class="key">Ctrl</span>＋<span class="key">C</span> と <span class="key">Ctrl</span>＋<span class="key">V</span> も使えます</td></tr>
+    <tr><th>Excel から</th><td>Excel でコピーした文字も貼れます。縦に何行かコピーしたときは、選んだ欄から下へ順に入ります</td></tr>
+  </table></div>
+  <p>担当・料金の列も、同じようにコピー・貼り付けできます。選択肢にない文字は貼れません（「選択肢にない値なので貼り付けられませんでした」と出ます）。料金に貼れるのは数字だけです。</p>
+  <div class="note">右クリックのコピー・貼り付けは、パソコンで使ってください。スマホでは1つずつ選びます。</div>
+</section>
+
+<section id="stats">
+  <h2><span class="no">7</span>分析・事例を見る</h2>
+<!-- demo:stats -->
+  <h3>動きで見る：分析と事例を見る</h3>
+  <div class="demo" data-demo="stats">
+    <div class="stage" style="width:240px"><img src="img/demo-stats-side.png" alt="左のメニュー" width="240" height="310" loading="lazy"></div>
+    <div class="side"><h4>この順に押します</h4><ol class="steps"></ol><div class="ctl"><button type="button" data-act="pause">一時停止</button><button type="button" data-act="again">最初から</button></div></div>
+    <script type="application/json">{"images":[{"src":"img/demo-stats-side.png","w":240,"h":310,"dw":240,"alt":"左のメニュー"},{"src":"img/demo-stats.png","w":996,"h":648,"dw":996,"alt":"分析"},{"src":"img/demo-cases.png","w":996,"h":372,"dw":996,"alt":"事例"}],"steps":[{"img":0,"x":50,"y":62.8,"t":"左のメニューの「分析」を押します","box":{"x":4.2,"y":56.4,"w":91.7,"h":12.8}},{"img":1,"x":14.2,"y":6,"t":"掲載号の範囲を決めて、その間の回答だけで集計できます","box":{"x":7.5,"y":3.2,"w":13.3,"h":5.6},"more":[{"x":30.4,"y":6}]},{"img":1,"x":50,"y":22.9,"t":"回答数と、満足度の平均（5点満点）。「満足・やや満足」の割合も出ます","box":{"x":0.6,"y":13.6,"w":98.8,"h":18.6},"look":{"x":0.2,"y":13,"w":99.6,"h":19.9}},{"img":1,"x":24.1,"y":39.8,"t":"くらべる切り口を選びます（ジャンル別・媒体別・サイズ別・担当別・掲載号別・料金別）","box":{"x":20.9,"y":37.2,"w":6.3,"h":5.2}},{"img":1,"x":50,"y":75.4,"t":"切り口ごとの件数・平均・内訳。色の帯は 緑＝満足 〜 赤＝不満 の割合です","box":{"x":0.7,"y":52,"w":98.6,"h":46.8},"look":{"x":0.3,"y":51.4,"w":99.4,"h":48.1}},{"img":0,"x":50,"y":76.2,"t":"「事例」を押すと…","box":{"x":4.2,"y":69.9,"w":91.7,"h":12.8}},{"img":2,"x":32.2,"y":10.5,"t":"反響が「満足」「やや満足」で、具体的な反響が書かれている回答だけが並びます","box":{"x":2.5,"y":7.8,"w":59.4,"h":5.4},"look":{"x":2.1,"y":6.7,"w":60.2,"h":7.5}},{"img":2,"x":91.1,"y":10.5,"t":"ジャンル・媒体で絞り込めます。営業の話のネタや提案資料にどうぞ","box":{"x":84.7,"y":5.6,"w":12.8,"h":9.7},"more":[{"x":6.2,"y":22.3}]}]}</script>
+  </div>
+<!-- /demo:stats -->
+  <p>「分析」では、満足度の平均と内訳を、いろいろな切り口でくらべられます。満足度は 満足＝5、やや満足＝4、どちらともいえない＝3、やや不満＝2、不満＝1 として平均します。</p>
+  <div class="tbl"><table>
+    <tr><th>上の4つの数字</th><td>回答数 ／ 反響満足度の平均 ／ 費用感満足度の平均 ／ 担当が決まっていない回答の数。平均の下には「満足・やや満足」の割合が出ます</td></tr>
+    <tr><th>くらべる切り口</th><td>ジャンル別 ／ 媒体別 ／ 掲載サイズ別 ／ 担当別 ／ 掲載号別 ／ 掲載料金別（2万円未満・2〜5万円・5〜10万円・10〜20万円・20万円以上）</td></tr>
+    <tr><th>（未入力）</th><td>その項目がまだ入っていない回答は、ここにまとまります</td></tr>
+  </table></div>
+  <p>「掲載号」で範囲を決めると、その間の回答だけで集計します（掲載号が入っていない回答は数えません）。削除した回答は数えません。</p>
+  <h3>事例</h3>
+  <p>「事例」には、反響が「満足」「やや満足」で、具体的な反響が書かれている回答だけが、満足度の高い順に並びます。ジャンル・媒体で絞り込めます。営業の話のネタや、提案資料にどうぞ。</p>
+</section>
+
+<section id="faq">
+  <h2><span class="no">8</span>困ったとき</h2>
+  <dl class="faq">
+    <dt>自分のお客様の回答が「未割り当て」にない</dt>
+    <dd>あなた専用のアンケートから届いた回答は、最初からあなたの担当です。「一覧」の「自分の案件」を見てください。</dd>
+    <dt>欄が文字だけで、選べない・直せない</dt>
+    <dd>ほかの人の担当の回答です。直せるのは担当本人と管理者だけです。自分の担当にしたいときは、いまの担当の人に付け替えてもらってください。</dd>
+    <dt>まちがえて自分の担当にしてしまった</dt>
+    <dd>「担当」の欄で「担当なし」を選ぶと、元に戻ります。</dd>
+    <dt>選びたいジャンル・サイズが選択肢にない</dt>
+    <dd>選択肢は管理者が増やせます。管理者に頼んでください。</dd>
+    <dt>「選択肢にない値なので貼り付けられませんでした」と出た</dt>
+    <dd>ちがう列の値を貼ろうとしたか、Excel の文字が選択肢と少しちがいます。同じ列の中でコピー・貼り付けするか、1つずつ選んでください。</dd>
+    <dt>料金が保存されない</dt>
+    <dd>数字だけを入れて <span class="key">Enter</span> を押してください。「万」などの文字が入っていると保存できません。</dd>
+    <dt>「削除」を押しても消えない</dt>
+    <dd>1回目は「もう一度押すと削除」に変わるだけです。数秒のうちに、もう一度押してください。</dd>
+    <dt>まちがえて削除してしまった</dt>
+    <dd>管理者なら元に戻せます。管理者に頼んでください。</dd>
+    <dt>ほかの人が入れた内容が出てこない</dt>
+    <dd>ページを開き直すと、最新の内容になります。</dd>
+    <dt>表の右のほうが見えない</dt>
+    <dd>画面がせまいときは、表の中を横に動かすと見られます（表の下のスクロールバーなど）。</dd>
+    <dt>「会社のGoogleアカウントで開いてください」と出る</dt>
+    <dd>個人のGoogleアカウントで開いています。会社のアカウントでログインし直してください。</dd>
+    <dt>お客様から「送信できない」と言われた</dt>
+    <dd>掲載名・①・③ の3つは必須です。空の欄がないか見てもらってください。それでも送れないときは、少し時間をおいてもう一度お願いしてください。</dd>
+  </dl>
+</section>
+
+</main>
+</div>
+<footer>反響事例管理 使い方ガイド ・ 株式会社 ケイ・クリエイト</footer>
+<!-- demo-js:start -->
+<script>
+// 動きで見る（ポインターのアニメーション）: guide/build-demos.js が index.html に入れる。ここを直したら build-demos.js を実行
+// データ（各 .demo の中の <script type="application/json">）:
+//   images: [{ src, w, h, dw }]  … 写真（w,h は画面上の大きさ・dw は表示する幅 px）
+//   steps:  [{ img, x, y, t, look:{x,y,w,h}, type:'文字', drag:{x,y}, more:[{x,y}] }]  … x,y,w,h は写真の左上=0%・右下=100%
+//   look = 押さずに「ここを見る」（枠で囲む）／ type = 入力する文字を見せる／ drag = つまんで引く／ more = 続けて押す場所
+// テスト用: window.__demoGo('id', n) でアニメーションなしに n 番目（0 から）を表示して止める
+(function () {
+  var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var ARROW = '<svg viewBox="0 0 24 24" width="30" height="30"><path d="M4 2l15 11.2-6.6.9 3.9 7.6-2.9 1.4-3.8-7.6L4 20z" fill="#fff" stroke="#0f172a" stroke-width="1.6" stroke-linejoin="round"/></svg>';
+  var demos = {};
+  document.querySelectorAll('.demo[data-demo]').forEach(function (box) {
+    var data = JSON.parse(box.querySelector('script[type="application/json"]').textContent);
+    var steps = data.steps, images = data.images, stage = box.querySelector('.stage'), img = stage.querySelector('img'), list = box.querySelector('ol.steps');
+    var maxDw = Math.max.apply(null, images.map(function (m) { return m.dw; }));
+    if (maxDw > 520) box.classList.add('wide');
+    var preloaded = false;
+    function preload() { if (preloaded) return; preloaded = true; images.forEach(function (m) { var pre = new Image(); pre.src = m.src; }); } // 見えたときに、このデモの写真を先に読み込む（切り替えで待たない・ページを開いた時は読まない）
+    list.innerHTML = steps.map(function (s) { return '<li>' + s.t + '</li>'; }).join('');
+    var lis = list.querySelectorAll('li');
+    var now = document.createElement('div'); now.className = 'now'; now.textContent = '▶ ' + steps[0].t; stage.insertAdjacentElement('afterend', now);
+    var ptr = document.createElement('div'); ptr.className = 'ptr'; ptr.innerHTML = ARROW; stage.appendChild(ptr);
+    var ring = document.createElement('div'); ring.className = 'ring'; stage.appendChild(ring);
+    var hl = document.createElement('div'); hl.className = 'hl'; stage.appendChild(hl);
+    var typing = document.createElement('div'); typing.className = 'typing'; stage.appendChild(typing);
+    var badge = document.createElement('div'); badge.className = 'badge'; stage.appendChild(badge);
+    var i = -1, cur = -1, timer = null, visible = false, paused = false, pauseBtn = box.querySelector('[data-act=pause]');
+    var HOME = { x: 70, y: 4 };
+    function place(el, p) { el.style.left = p.x + '%'; el.style.top = p.y + '%'; }
+    function wait(ms, fn) { clearTimeout(timer); timer = setTimeout(fn, reduce ? Math.min(ms, 300) : ms); }
+    function setImg(k, instant, done) {
+      if (k === cur) return done && done();
+      var m = images[k]; cur = k;
+      function swap() { img.src = m.src; img.width = m.w; img.height = m.h; img.alt = m.alt || img.alt; stage.style.width = m.dw + 'px'; }
+      if (instant || img.getAttribute('src') === m.src) { swap(); return done && done(); }
+      img.classList.add('fade'); hl.classList.remove('on'); typing.classList.remove('on');
+      setTimeout(function () { swap(); img.classList.remove('fade'); done && setTimeout(done, 200); }, 180);
+    }
+    function mark(n) {
+      if (n >= 0) now.textContent = (n + 1) + '. ' + steps[n].t;
+      lis.forEach(function (li, k) { li.classList.toggle('on', k === n); li.classList.toggle('done', n >= 0 && k < n); });
+    }
+    function showHl(s) { if (s.look) { hl.style.left = s.look.x + '%'; hl.style.top = s.look.y + '%'; hl.style.width = s.look.w + '%'; hl.style.height = s.look.h + '%'; hl.classList.add('on'); } else hl.classList.remove('on'); }
+    function placeTyping(s) { // 入力欄のすぐ下（下の端に近いときは上）
+      var b = s.box || { x: s.x - 10, y: s.y - 2, w: 20, h: 4 };
+      typing.style.left = Math.max(0, Math.min(b.x, 60)) + '%';
+      if (b.y + b.h > 82) { typing.style.top = 'auto'; typing.style.bottom = (100 - b.y + 1) + '%'; }
+      else { typing.style.bottom = 'auto'; typing.style.top = (b.y + b.h + 1) + '%'; }
+    }
+    function click(p, done) { place(ring, p); ring.classList.remove('go'); void ring.offsetWidth; ring.classList.add('go'); ptr.classList.add('press'); setTimeout(function () { ptr.classList.remove('press'); }, 160); wait(500, done); }
+    function typeText(s, done) {
+      placeTyping(s); typing.textContent = ''; typing.classList.add('on');
+      var txt = s.type, k = 0;
+      (function one() { k++; typing.textContent = txt.slice(0, k); if (k < txt.length) wait(reduce ? 0 : 70, one); else wait(1300, function () { typing.classList.remove('on'); done(); }); })();
+    }
+    function show(n) {
+      mark(n);
+      var s = steps[n];
+      typing.classList.remove('on');
+      setImg(s.img || 0, false, function () {
+        var p = { x: s.x, y: s.y }; place(ptr, p); place(badge, p); badge.textContent = n + 1; badge.style.opacity = 1; ptr.style.opacity = 1;
+        showHl(s);
+        wait(1000, function () {
+          if (s.look) return next(1900);
+          if (s.drag) { ptr.classList.add('press', 'drag'); wait(250, function () { place(ptr, s.drag); place(badge, s.drag); wait(1300, function () { ptr.classList.remove('press', 'drag'); next(1300); }); }); return; }
+          var more = (s.more || []).slice();
+          (function chain() {
+            click(p, function () {
+              if (s.type && !more.length) return typeText(s, function () { next(500); });
+              if (!more.length) return next(1500);
+              p = more.shift(); place(ptr, p); place(badge, p); wait(650, chain);
+            });
+          })();
+        });
+      });
+    }
+    function reset() { i = -1; mark(-1); badge.style.opacity = 0; hl.classList.remove('on'); typing.classList.remove('on'); place(ptr, HOME); }
+    function next(ms) {
+      wait(ms, function () {
+        if (!visible || paused) { timer = null; return; }
+        i++;
+        if (i >= steps.length) { reset(); return wait(1800, function () { setImg(steps[0].img || 0, false, function () { next(0); }); }); }
+        show(i);
+      });
+    }
+    function start() { if (timer || paused) return; next(400); }
+    function stop() { clearTimeout(timer); timer = null; }
+    setImg(steps[0].img || 0, true); place(ptr, HOME); place(badge, HOME); badge.style.opacity = 0;
+    if ('IntersectionObserver' in window) new IntersectionObserver(function (es) { visible = es[0].isIntersecting; if (visible) { preload(); start(); } else stop(); }, { threshold: .3 }).observe(stage);
+    else { visible = true; preload(); start(); }
+    function setPaused(v) { paused = v; pauseBtn.textContent = paused ? '再生' : '一時停止'; }
+    pauseBtn.onclick = function () { setPaused(!paused); stop(); if (!paused) next(200); };
+    box.querySelector('[data-act=again]').onclick = function () { stop(); setPaused(false); reset(); setImg(steps[0].img || 0, false, function () { next(100); }); };
+    // 手順の一覧を押すと、その手順から
+    lis.forEach(function (li, k) { li.onclick = function () { stop(); setPaused(false); i = k - 1; next(0); }; });
+    // テスト用: n 番目をアニメーションなしで表示して止める
+    demos[box.dataset.demo] = function (n) {
+      stop(); setPaused(true); preload(); box.classList.add('instant');
+      var s = steps[n]; i = n; mark(n); setImg(s.img || 0, true);
+      var p = { x: s.x, y: s.y }; place(ptr, p); place(badge, p); badge.textContent = n + 1; badge.style.opacity = 1; ptr.style.opacity = 1;
+      showHl(s);
+      if (s.type) { placeTyping(s); typing.textContent = s.type; typing.classList.add('on'); } else typing.classList.remove('on');
+      void box.offsetWidth; box.classList.remove('instant');
+      return { img: images[s.img || 0].src, x: s.x, y: s.y };
+    };
+  });
+  window.__demoGo = function (id, n) { return demos[id] ? demos[id](n) : null; };
+  window.__demoIds = Object.keys(demos);
+})();
+</script>
+<!-- demo-js:end -->
+</body>
+</html>

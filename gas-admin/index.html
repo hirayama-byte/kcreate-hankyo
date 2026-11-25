@@ -649,7 +649,7 @@ $('dSave').onclick = function () {
     .catch(function (e) { b.disabled = false; $('dMsg').textContent = e.message; $('dMsg').className = 'msg err'; });
 };
 // 使い方ガイド: 中身ができたら GUIDE_URL に入れる（2026-11-19 ボタンだけ先に）
-var GUIDE_URL = '';
+var GUIDE_URL = 'https://hirayama-byte.github.io/kcreate-hankyo/guide/';
 $('guideBtn').onclick = function (e) { if (GUIDE_URL) { this.href = GUIDE_URL; this.target = '_blank'; return; } e.preventDefault(); toast('使い方ガイドは準備中です'); };
 </script>
 </body>
